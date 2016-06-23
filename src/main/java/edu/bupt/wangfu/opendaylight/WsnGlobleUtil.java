@@ -1,34 +1,35 @@
 package edu.bupt.wangfu.opendaylight;
 
 
+import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.msg.udp.GroupUnit;
+import edu.bupt.wangfu.info.ldap.WSNTopicObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by root on 15-10-6.
  */
-public class WsnGlobleUtil {
-	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();
+public class WsnGlobleUtil extends SysInfo {
 	public static String wsn2Swt;//wsn连接switch，switch上的的端口
-	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();	public static ConcurrentHashMap<String, GroupUnit> groups;//保存当前拓扑内出了本集群外所有集群的信息，key为集群名
+	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();
 	private static Controller groupController;
-	private static HashMap<String, Controller> controllers = new HashMap<>();
-	private static Timer timer = new Timer();
+	private static HashMap<String, Controller> controllers = new HashMap<>();//集群内所有的控制器
+
 	private static HashSet<String> hostSet = new HashSet<>();//当前集群所有host的mac
 	private static HashSet<String> switchSet = new HashSet<>();//当前集群所有switch的id
 	private static HashSet<String> outPorts = new HashSet<>();//当前switch对集群外的端口
-	private static List<List<String>> notifyTopicList = new ArrayList<>();//lcw 主题树-->编码树
-	private static HashMap<String, String> sysTopicMap = new HashMap<>();
+	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
+	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
 
 
 	private WsnGlobleUtil() {
-		// start timer to recaclateRoute
-		timer.schedule(new GlobalTimerTask(), 2000, 5 * 60 * 1000);
 	}
 
 
@@ -52,11 +53,11 @@ public class WsnGlobleUtil {
 
 	public static void initSysTopicMap() {
 		//TODO 把管理消息主题和对应的v6地址
-		HashMap<String, String> res = new HashMap<>();
+		ConcurrentHashMap<String, String> res = new ConcurrentHashMap<>();
 		sysTopicMap = res;
 	}
 
-	public static HashMap<String, String> getSysTopicMap() {
+	public static ConcurrentHashMap<String, String> getSysTopicMap() {
 		return sysTopicMap;
 	}
 
@@ -66,7 +67,7 @@ public class WsnGlobleUtil {
 
 	public static void swtStatusInit(Controller controller, String swtId) {
 		String url = controller.getUrl() + "/restconf/operational/network-topology:network-topology/";
-		String body = doClientGet(url);
+		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
 		JSONArray topology = net_topology.getJSONArray("topology");
@@ -90,7 +91,7 @@ public class WsnGlobleUtil {
 				String[] link_id_info = link_id.split(":");
 				if (link_id.contains(swtId) && !link_id.contains("/")) {//<link-id>openflow:117169754616649:1</link-id>
 					//TODO 究竟条目长什么样子还需要再看。可以是node中所有端口，减去link中一部分端口
-					// 这个连接左边是特定交换机，右边也是一个交换机
+					//这个连接左边是特定交换机，右边也是一个交换机
 					String[] dest_info = link.getJSONObject(j).getJSONObject("destination").getString("dest-tp").split(":");
 					if (!switchSet.contains(dest_info[1])) {
 						//右边的交换机不在这个controller控制下，则左边交换机开的端口就是对外端口
@@ -99,14 +100,12 @@ public class WsnGlobleUtil {
 				}
 			}
 		}
-
-
 	}
 
 	public static String getLinkedSwtId(Controller controller, String wsnMac) {
-		//lcw 返回本机所连Switch的odl_id
+		//返回wsn程序所在主机所连Switch的odl_id
 		String url = controller.getUrl() + "/restconf/operational/network-topology:network-topology/";
-		String body = doClientGet(url);
+		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
 		JSONArray topology = net_topology.getJSONArray("topology");
@@ -134,70 +133,15 @@ public class WsnGlobleUtil {
 		return outPorts;
 	}
 
-//	public HashMap<String, DevInfo> getNodesOnSwitch() {
-//		return nodesOnSwitch;
-//	}
-//
-//	public void addNodesOnSwitch(String mac, DevInfo dev) {
-//		WsnGlobleUtil.nodesOnSwitch.put(mac, dev);
-//	}
-
-
 	public static Controller getGroupController() {
 		return groupController;
 	}
-
-//	public void init() {
-//		//get realtime global info
-//		reflashGlobleInfo();
-//
-//		//init all switchs
-//		for (Map.Entry<String, Controller> entry : controllers.entrySet()) {
-//			Controller controller = entry.getValue();
-//			initSwitchs(controller);
-//		}
-//
-//
-//	}
 
 	public static void setController(String groupCtlUrl) {
 		//TODO 这后面还需要添加当前掉线后如何设置新控制器
 		controllers.put(groupCtlUrl, new Controller(groupCtlUrl));
 		groupController = controllers.get(groupCtlUrl);
 	}
-
-	private boolean initSwitchs(Controller controller) {
-		boolean success = false;
-
-		//down init flows
-		FlowHandler.downFlow(controller, initFlows);
-
-		return success;
-	}
-
-//	public boolean reflashGlobleInfo() {
-//
-//		//Traversal controllers, GET global realtime status
-//		for (Map.Entry<String, Controller> entry : controllers.entrySet()) {
-//			Controller controller = entry.getValue();
-//			if (!controller.isAlive()) {
-//				controllers.remove(entry.getKey());
-//				continue;
-//			}
-//			controller.reflashSwitchMap();
-//		}
-//		return true;
-//	}
-
-//	public synchronized void addController(String controllerAddr) {
-//
-//		Controller newController = new Controller(controllerAddr);
-//
-//		newController.reflashSwitchMap();
-//
-//		controllers.put(controllerAddr, newController);
-//
-//	}
 
 	public String[] splitString(String source_port) {
 		String[] str;
@@ -221,21 +165,5 @@ public class WsnGlobleUtil {
 
 	public void setSwitchSet(HashSet<String> switchSet) {
 		WsnGlobleUtil.switchSet = switchSet;
-	}
-
-	private class GlobalTimerTask extends TimerTask {
-
-		/**
-		 * The action to be performed by this timer task.
-		 */
-		@Override
-		public void run() {
-
-			//whether to adjust queue
-			QueueManagerment.qosStart();
-
-			//whether to adjust route
-
-		}
 	}
 }

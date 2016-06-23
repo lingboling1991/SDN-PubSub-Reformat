@@ -44,7 +44,7 @@ public class Flow {
 	}
 
 	public void setXmlContent(String xmlContent, int flowcount, String tableId) {
-		//lcw 这里是测试，不想在这里写太多xml格式的东西
+		//这里是测试，不想在这里写太多xml格式的东西
 		File file = new File("Template.txt");
 		BufferedReader reader;
 		String s = null;

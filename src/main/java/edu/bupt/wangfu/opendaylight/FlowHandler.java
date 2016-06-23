@@ -56,8 +56,8 @@ public class FlowHandler {
 
 	public static String topicName2topicCode(String topicName, List<List<String>> topicList) {
 		//topicList中每一个list代表（像是all:a:d这样）一截主题8bit，100bit能容纳12层
-		// e.g. topicList == [[all],[a,b,c],[d,e,f]]
-		// 所以all:a:d == 0:0:0
+		//e.g. topicList == [[all],[a,b,c],[d,e,f]]
+		//所以all:a:d == 0:0:0
 
 		String[] names = topicName.split(":");
 		StringBuilder binIndex = new StringBuilder();
