@@ -10,9 +10,9 @@ public class X extends Base {
 
 	private X() {
 		System.out.println("constructor working, X: " + s + ", info: " + info);
-		y = new Thread(new Y(this));
-		y.start();
-		s = 5;
+//		y = new Thread(new Y(this));
+//		y.start();
+		info = "def";
 		System.out.println("constructor working, X: " + s + ", info: " + info);
 	}
 

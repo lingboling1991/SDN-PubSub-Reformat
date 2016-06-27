@@ -1,9 +1,9 @@
 package edu.bupt.wangfu.opendaylight;
 
 
-import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.ldap.WSNTopicObject;
+import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -22,14 +22,15 @@ public class WsnGlobleUtil extends SysInfo {
 	private static Controller groupController;
 	private static HashMap<String, Controller> controllers = new HashMap<>();//集群内所有的控制器
 
-	private static HashSet<String> hostSet = new HashSet<>();//当前集群所有host的mac
-	private static HashSet<String> switchSet = new HashSet<>();//当前集群所有switch的id
+
 	private static HashSet<String> outPorts = new HashSet<>();//当前switch对集群外的端口
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
 
 
 	private WsnGlobleUtil() {
+		hostSet = new HashSet<>();
+		switchSet = new HashSet<>();
 	}
 
 

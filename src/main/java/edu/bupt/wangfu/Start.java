@@ -11,7 +11,7 @@ import javax.xml.ws.Endpoint;
  */
 public class Start {
 	public static void main(String[] args) {
-		Configuration.configure();
+		Configuration.configure();//这里进行配置，配置文件的内容写到SysInfo里
 		System.out.println("init started");
 
 		new Thread(new mgrInstance()).start();
@@ -23,7 +23,7 @@ public class Start {
 
 	private static class mgrInstance implements Runnable {
 		public void run() {
-			RtMgr.getInstance();//让RtMgr的实例一直存活在这个线程中
+			RtMgr.getInstance();
 			System.out.println("init finished");
 		}
 	}

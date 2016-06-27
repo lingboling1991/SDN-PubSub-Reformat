@@ -114,7 +114,7 @@ public class FlowHandler {
 		return f;
 	}
 
-	public static Flow generateFlow(String swtId, String p1, String p2, String action) {
+	public static Flow generateFlow(String swtId, String in, String out, String topic, String action) {
 		Flow flow = new Flow();
 		//swt是switch在odl里的id，并不是mac或者dpid
 		if (action.equals("wsn2out")) {
