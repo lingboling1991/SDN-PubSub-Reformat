@@ -34,10 +34,7 @@ public class MsgHandler extends SysInfo {
 			dt.onHello(mh);
 		} else if (msg instanceof MsgHello_) {
 			MsgHello_ mh_ = (MsgHello_) msg;
-			if (groupName.equals(mh_.dstGroup) &&
-					outPorts.keySet().contains(mh_.dstPort))
-				//这条消息是针对 本集群groupName 的 对外端口dstPort 的回复
-				dt.onReply(mh_);
+			dt.onReply(mh_);
 		}
 	}
 }

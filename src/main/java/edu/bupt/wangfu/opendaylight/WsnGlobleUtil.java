@@ -82,7 +82,7 @@ public class WsnGlobleUtil extends SysInfo {
 			}
 		}
 
-		HashMap<String, Port> tmp = new HashMap<>();
+		ConcurrentHashMap<String, Port> tmp = new ConcurrentHashMap<>();
 
 		for (int i = 0; i < topology.length(); i++) {
 			JSONArray link = topology.getJSONObject(i).getJSONArray("link");
@@ -95,17 +95,20 @@ public class WsnGlobleUtil extends SysInfo {
 					String[] dest_info = link.getJSONObject(j).getJSONObject("destination").getString("dest-tp").split(":");
 					if (!switchSet.contains(dest_info[1])) {
 						//右边的交换机不在这个controller控制下，则左边交换机开的端口就是对外端口
-						tmp.put(link_id_info[2], new Port(Integer.valueOf(link_id_info[2])));
+						tmp.put(link_id_info[2], new Port(link_id_info[2]));
 					}
 				}
 			}
 		}
+
 		for (Port old : outPorts.values()) {
 			if (!tmp.values().contains(old)) {
+				neighbors.remove(old.getPort());//旧的对外端口不存在了，那么这个口对应的邻居也就不存在了
 				//TODO 这里需要把原来的out-->wsn流表删掉吗？
 //				FlowHandler.deleteFlow(localAddr,)
 			}
 		}
+
 		outPorts.clear();
 		outPorts = tmp;
 	}
@@ -135,10 +138,6 @@ public class WsnGlobleUtil extends SysInfo {
 			}
 		}
 		return null;
-	}
-
-	public static HashMap<String, Port> getOutPorts() {
-		return outPorts;
 	}
 
 	public static Controller getGroupController() {

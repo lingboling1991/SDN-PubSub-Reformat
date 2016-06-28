@@ -36,7 +36,7 @@ public class Configuration extends SysInfo {
 		uPort = Integer.valueOf(props.getProperty("uPort"));
 
 		groups = new ConcurrentHashMap<>();
-		neighbors = new ArrayList<>();
+		neighbors = new ConcurrentHashMap<>();
 		hostSet = new HashSet<>();
 		switchSet = new HashSet<>();
 		subTable = new ArrayList<>();
@@ -51,7 +51,6 @@ public class Configuration extends SysInfo {
 		//开始配置，获得当前控制器连接的所有switch和host，以及其中对外连接的port
 		localSwitch = WsnGlobleUtil.getLinkedSwtId(localAddr, hostMac);
 		WsnGlobleUtil.initGroup(localAddr, localSwitch);//初始化了outPorts, hostSet, switchSet
-		outPorts = WsnGlobleUtil.getOutPorts();
 
 		//针对switch向外的连接，下发流表（hello类的流表）
 		//这里先假设一个集群只有一个交换机

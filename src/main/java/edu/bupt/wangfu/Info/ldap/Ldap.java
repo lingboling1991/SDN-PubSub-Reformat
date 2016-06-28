@@ -1,6 +1,7 @@
 package edu.bupt.wangfu.info.ldap;
 
-import edu.bupt.wangfu.info.ldap.policy.ComplexGroup;
+
+import edu.bupt.wangfu.info.msg.ldap.ComplexGroup;
 
 import javax.naming.Context;
 import javax.naming.NameClassPair;
@@ -199,7 +200,7 @@ public class Ldap {
 		}
 	}
 
-	//get ldap name string from string with "ou="
+	//get topic name string from string with "ou="
 	private String getTopicName(String nameWithOU) {
 		return nameWithOU.substring(3, nameWithOU.length());
 	}
