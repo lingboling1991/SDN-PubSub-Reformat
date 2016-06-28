@@ -3,6 +3,7 @@ package edu.bupt.wangfu.opendaylight;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,6 +25,26 @@ public class RestProcess {
 	private static String SECRET_KEY = "your secret key";
 	private static int index = 2;
 	private static CloseableHttpClient client = HttpClients.createDefault();
+
+
+	public static String doClientDelete(String url) {
+		try {
+			HttpClient httpclient = new HttpClient();
+			UsernamePasswordCredentials creds = new UsernamePasswordCredentials("admin", "admin");
+			httpclient.getState().setCredentials(AuthScope.ANY, creds);
+			DeleteMethod deleteMethod = new DeleteMethod(url);
+			deleteMethod.setDoAuthentication(true);
+
+			int status = httpclient.executeMethod(deleteMethod);
+			System.out.println("the code is " + status);
+			String body = deleteMethod.getResponseBodyAsString();
+			deleteMethod.releaseConnection();
+			return body;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public static String doClientGet(String url) {//nll 用户名密码认证方式
 		try {

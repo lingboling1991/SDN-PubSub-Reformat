@@ -2,16 +2,14 @@ package edu.bupt.wangfu.opendaylight;
 
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
-import edu.bupt.wangfu.info.device.Switch;
-import org.json.JSONObject;
+import edu.bupt.wangfu.mgr.base.SysInfo;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by lenovo on 2016-5-18.
  */
-public class FlowHandler {
+public class FlowHandler extends SysInfo {
 	private static FlowHandler ins;
 	private static int flowcount;
 
@@ -89,56 +87,62 @@ public class FlowHandler {
 	}
 
 	public static String getDpid(String controller, String localAddr) {
-		//TODO 交换机状态查询地址还需确定，返回wsn连接的交换机的dpid
+		//TODO 执行交换机状态查询功能的 地址 还需确定，返回wsn连接的交换机的dpid
 		String switchStatusUri = controller + "/";
 		return RestProcess.doClientGet(switchStatusUri);
 	}
 
-	public static Flow generateFlow(Switch curSwitch, String curTopic, String targetPort) {
-		String dpid = curSwitch.getDPID();
-		HashMap<String, String> parms = new HashMap<>();
-		parms.put("switch", dpid);
-		parms.put("name", "flow-mod-");//为每个流表指定唯一的名称
-		parms.put("cookie", "0");
-		parms.put("priority", "32768");
-//		parms.put("ipv6_dst", topicName2multiV6Addr(curTopic, topicList, queueNo));//测试v6地址转化函数
-		parms.put("active", "true");
-
-		parms.put("actions", "output=" + targetPort);
-		parms.put("eth_type", "0x86dd");
-
-		Flow f = new Flow();
-		JSONObject content = new JSONObject(parms);
-		f.setJsonContent(content);
-
-		return f;
-	}
+//	public static Flow generateFlow(Switch curSwitch, String curTopic, String targetPort) {
+//		String dpid = curSwitch.getDPID();
+//		HashMap<String, String> parms = new HashMap<>();
+//		parms.put("switch", dpid);
+//		parms.put("name", "flow-mod-");//为每个流表指定唯一的名称
+//		parms.put("cookie", "0");
+//		parms.put("priority", "32768");
+////		parms.put("ipv6_dst", topicName2multiV6Addr(curTopic, topicList, queueNo));//测试v6地址转化函数
+//		parms.put("active", "true");
+//
+//		parms.put("actions", "output=" + targetPort);
+//		parms.put("eth_type", "0x86dd");
+//
+//		Flow f = new Flow();
+//		JSONObject content = new JSONObject(parms);
+//		f.setJsonContent(content);
+//
+//		return f;
+//	}
 
 	public static Flow generateFlow(String swtId, String in, String out, String topic, String action) {
 		Flow flow = new Flow();
 		//swt是switch在odl里的id，并不是mac或者dpid
-		if (action.equals("wsn2out")) {
-			//这里是wsn向admin发探测消息，admin回复这个消息所用的flow
-
-
-		}
+		//这里是wsn向admin发探测消息，admin回复这个消息所用的flow
 		return flow;
 	}
 
-	public static void main(String[] args) {
-
-	}
-
-	public static boolean downFlow(Controller controller, List<Flow> flows) {
+	public static boolean downFlows(String controller, List<Flow> flows, List<String> actions) {
 		boolean success = false;
 		for (Flow flow : flows) {
-			if (downFlow(controller, flow)) success = true;
+			if (downFlow(controller, flow, actions.get(flows.indexOf(flow))))
+				success = true;
 		}
-		return true;
+		return success;
 	}
 
-	public static boolean downFlow(Controller controller, Flow flow) {
-		//TODO 这里还要考虑下发到具体哪个流表里，查看是 更新流表项 还是 添加新流表项
-		return RestProcess.doClientPost(controller.url, flow.getJsonContent()).get(0).equals("200");
+	public static boolean deleteFlow(String controller, String table_id, String flow_id) {
+		String url = controller + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwitch
+				+ "/table/" + table_id + "/flow/" + flow_id;
+		return RestProcess.doClientDelete(url).equals("200");
+	}
+
+	public static boolean deleteFlow(String controller, Flow flow) {
+		String url = controller + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwitch
+				+ "/table/" + flow.getTable_id() + "/flow/" + flow.getFlow_id();
+		return RestProcess.doClientDelete(url).equals("200");
+	}
+
+
+	public static boolean downFlow(String controller, Flow flow, String action) {
+		//TODO 这里还要考虑下发到具体哪个流表里，看要执行的动作是 更新流表项 还是 添加新流表项
+		return RestProcess.doClientPost(controller, flow.getJsonContent()).get(0).equals("200");
 	}
 }

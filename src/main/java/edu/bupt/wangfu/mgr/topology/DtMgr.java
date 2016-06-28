@@ -1,15 +1,20 @@
 package edu.bupt.wangfu.mgr.topology;
 
+import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
+import edu.bupt.wangfu.info.msg.udp.MsgHello_;
 import edu.bupt.wangfu.mgr.base.RtMgr;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by lenovo on 2016-6-22.
@@ -25,9 +30,9 @@ public class DtMgr extends SysInfo {
 	private Timer lostTimer;//邻居丢失计时器
 
 	//丢失处理
-	private LostTask[] lostTask; // 当邻居丢失时需要发生的动作
-	private ConcurrentHashMap<String, Integer> nbName2index; // 记录邻居集群名称到他们所在LostTask项的对应
-	private List<Integer> avlNum; // 记录可用的losttask坐标
+//	private LostTask[] lostTask; // 当邻居丢失时需要发生的动作
+//	private ConcurrentHashMap<String, Integer> nbName2index; // 记录邻居集群名称到他们所在LostTask项的对应
+//	private List<Integer> avlNum; // 记录可用的losttask坐标
 
 	public DtMgr(RtMgr rtMgr) {
 		this.rtMgr = rtMgr;
@@ -47,44 +52,6 @@ public class DtMgr extends SysInfo {
 		sendPeriod = Long.parseLong((props.getProperty("sendPeriod")));//发送周期
 	}
 
-	public void onMsg(MsgHello mh) {
-		this.addTarget(mh.indicator);
-	}
-
-	public void addTarget(String indicator) {
-		Integer index;
-
-		if (!neighbors.contains(indicator)) {//如果是重复接收的hello，就不需要再添加neighbor了
-			neighbors.add(indicator);
-		}
-
-		if (nbName2index.containsKey(indicator)) {//发来hello消息的集群已经在执行着losttask了
-			lostTask[nbName2index.get(indicator)].cancel();//重启losttask
-			index = nbName2index.get(indicator);
-		} else {
-			index = avlNum.get(0);
-			nbName2index.put(indicator, index);
-			avlNum.remove(index);
-		}
-		lostTask[index] = new LostTask(indicator);
-		lostTimer.schedule(lostTask[index], threshold);
-	}
-
-	public void removeTarget(String indicator) {
-		if (neighbors.contains(indicator)) {
-			neighbors.remove(indicator);
-		}
-
-		if (nbName2index.containsKey(indicator)) {
-			Integer index = nbName2index.get(indicator);
-			if (lostTask[index] != null)
-				lostTask[index].cancel();
-			nbName2index.remove(indicator);
-			avlNum.add(index);
-		}
-
-	}
-
 	public void startSendTask() {
 		if (sendTask != null)
 			sendTask.cancel();
@@ -92,34 +59,42 @@ public class DtMgr extends SysInfo {
 		helloTimer.schedule(sendTask, sendPeriod, sendPeriod);
 	}
 
-	private void sendAction() {
-		//发MsgHello
+	private void sendHello(String port) {
 		MsgHello hello = new MsgHello();
 		String addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello");
-		MultiHandler handler = new MultiHandler(rtMgr.getuPort(), addr);
+		MultiHandler handler = new MultiHandler(uPort, addr);
 
-		hello.indicator = rtMgr.getLocalAddr();
-
+		hello.indicator = localAddr;
 		hello.helloInterval = sendPeriod;
 		hello.deadInterval = threshold;
+		hello.srcPort = port;
 
-		//发给对外的端口
 		handler.v6Send(hello);
-		//TODO 这里不需要给集群内发hello消息了，直接轮询控制器就可以
 	}
 
-	//邻居超时未回复，后面要采取的行动
-	private class LostTask extends TimerTask {
-		String groupName;
+	private void replyHello(MsgHello mh) {
+		MsgHello_ reply = new MsgHello_();
+		String addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_");
+		MultiHandler handler = new MultiHandler(uPort, addr);
 
-		LostTask(String groupName) {
-			this.groupName = groupName;
-		}
+		reply.srcSwitch = localSwitch;
+		reply.srcGroup = groupName;
 
-		@Override
-		public void run() {
-			removeTarget(groupName);
-//			rtMgr.lost(groupName);
+		reply.dstPort = mh.srcPort;
+		reply.dstGroup = mh.indicator;
+
+		handler.v6Send(reply);
+	}
+
+	public void onMsg(MsgHello mh) {
+		for (String port : outPorts.keySet()) {
+			Flow flow = FlowHandler.generateFlow(localSwitch, wsn2swt, port,
+					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_"), "");
+			FlowHandler.downFlow(localAddr, flow, "update");
+
+			replyHello(mh);
+
+			FlowHandler.deleteFlow(localAddr, flow);
 		}
 	}
 
@@ -127,9 +102,17 @@ public class DtMgr extends SysInfo {
 	private class SendTask extends TimerTask {
 		@Override
 		public void run() {
-			sendAction();
+			for (String port : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
+				Flow flow = FlowHandler.generateFlow(localSwitch, wsn2swt, port,
+						WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), "");
+				FlowHandler.downFlow(localAddr, flow, "add");
+
+				sendHello(port);
+
+				FlowHandler.deleteFlow(localAddr, flow);
+			}
+			WsnGlobleUtil.initGroup(localAddr, localSwitch);//更新switchSet，outPorts
 		}
 	}
-
 
 }

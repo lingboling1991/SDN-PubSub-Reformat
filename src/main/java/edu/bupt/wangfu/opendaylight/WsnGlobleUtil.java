@@ -2,6 +2,7 @@ package edu.bupt.wangfu.opendaylight;
 
 
 import edu.bupt.wangfu.info.device.Controller;
+import edu.bupt.wangfu.info.device.Port;
 import edu.bupt.wangfu.info.ldap.WSNTopicObject;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
@@ -17,16 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by root on 15-10-6.
  */
 public class WsnGlobleUtil extends SysInfo {
-	public static String wsn2Swt;//wsn连接switch，switch上的的端口
 	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();
 	private static Controller groupController;
 	private static HashMap<String, Controller> controllers = new HashMap<>();//集群内所有的控制器
 
-
-	private static HashSet<String> outPorts = new HashSet<>();//当前switch对集群外的端口
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
-
 
 	private WsnGlobleUtil() {
 		hostSet = new HashSet<>();
@@ -40,7 +37,7 @@ public class WsnGlobleUtil extends SysInfo {
 
 	public static void main(String[] args) {
 		Controller ctl = new Controller("10.108.164.240:8181");
-//		WsnGlobleUtil.getInstance().swtStatusInit(ctl, "52:54:00:b4:46:51");
+//		WsnGlobleUtil.getInstance().initGroup(ctl, "52:54:00:b4:46:51");
 		String x = "openflow:117169754616649";
 		System.out.println(x.substring(9, x.length() - 1));
 
@@ -66,8 +63,8 @@ public class WsnGlobleUtil extends SysInfo {
 		return notifyTopicList;
 	}
 
-	public static void swtStatusInit(Controller controller, String swtId) {
-		String url = controller.getUrl() + "/restconf/operational/network-topology:network-topology/";
+	public static void initGroup(String controller, String swtId) {
+		String url = controller + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
@@ -85,6 +82,8 @@ public class WsnGlobleUtil extends SysInfo {
 			}
 		}
 
+		HashMap<String, Port> tmp = new HashMap<>();
+
 		for (int i = 0; i < topology.length(); i++) {
 			JSONArray link = topology.getJSONObject(i).getJSONArray("link");
 			for (int j = 0; j < link.length(); j++) {
@@ -96,16 +95,24 @@ public class WsnGlobleUtil extends SysInfo {
 					String[] dest_info = link.getJSONObject(j).getJSONObject("destination").getString("dest-tp").split(":");
 					if (!switchSet.contains(dest_info[1])) {
 						//右边的交换机不在这个controller控制下，则左边交换机开的端口就是对外端口
-						outPorts.add(link_id_info[2]);
+						tmp.put(link_id_info[2], new Port(Integer.valueOf(link_id_info[2])));
 					}
 				}
 			}
 		}
+		for (Port old : outPorts.values()) {
+			if (!tmp.values().contains(old)) {
+				//TODO 这里需要把原来的out-->wsn流表删掉吗？
+//				FlowHandler.deleteFlow(localAddr,)
+			}
+		}
+		outPorts.clear();
+		outPorts = tmp;
 	}
 
-	public static String getLinkedSwtId(Controller controller, String wsnMac) {
+	public static String getLinkedSwtId(String controller, String wsnMac) {
 		//返回wsn程序所在主机所连Switch的odl_id
-		String url = controller.getUrl() + "/restconf/operational/network-topology:network-topology/";
+		String url = controller + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
@@ -120,7 +127,7 @@ public class WsnGlobleUtil extends SysInfo {
 					for (String p : ps) {
 						if (p.contains("openflow")) {
 							String[] qs = p.split(":");
-							wsn2Swt = qs[2];
+							wsn2swt = qs[2];
 							return qs[1];
 						}
 					}
@@ -130,7 +137,7 @@ public class WsnGlobleUtil extends SysInfo {
 		return null;
 	}
 
-	public static HashSet<String> getOutPorts() {
+	public static HashMap<String, Port> getOutPorts() {
 		return outPorts;
 	}
 

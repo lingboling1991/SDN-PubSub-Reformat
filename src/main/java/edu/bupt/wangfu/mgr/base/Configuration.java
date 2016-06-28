@@ -1,6 +1,5 @@
 package edu.bupt.wangfu.mgr.base;
 
-import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.WsnHost;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
@@ -44,24 +43,24 @@ public class Configuration extends SysInfo {
 		lsaSeqNum = 0;
 		lsdb = new ConcurrentHashMap<>();
 
-		//开始配置，获得当前控制器连接的所有switch和host，以及其中对外连接的port
+		//TODO 向谁获知控制器地址，因为要从controlllers里选集群控制器
 		WsnGlobleUtil.setController(localAddr);
 		WsnHost node = new WsnHost(localAddr);
 		String hostMac = node.getMac();
-		Controller ctl = WsnGlobleUtil.getGroupController();
 
-		String localSwt = WsnGlobleUtil.getLinkedSwtId(ctl, hostMac);
-		WsnGlobleUtil.swtStatusInit(ctl, localSwt);//初始化了outPorts, hostSet, switchSet
+		//开始配置，获得当前控制器连接的所有switch和host，以及其中对外连接的port
+		localSwitch = WsnGlobleUtil.getLinkedSwtId(localAddr, hostMac);
+		WsnGlobleUtil.initGroup(localAddr, localSwitch);//初始化了outPorts, hostSet, switchSet
 		outPorts = WsnGlobleUtil.getOutPorts();
 
 		//针对switch向外的连接，下发流表（hello类的流表）
 		//这里先假设一个集群只有一个交换机
-		for (String port : outPorts) {
+		for (String port : outPorts.keySet()) {
 			//这里是“向外的端口进消息，wsn收消息”的流表
-			Flow flow = FlowHandler.generateFlow(localSwt, port, WsnGlobleUtil.wsn2Swt,
+			Flow flow = FlowHandler.generateFlow(localSwitch, port, wsn2swt,
 					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), "");
-			//TODO 这里要注意是修改已有流表，不是新增一条，因为进端口是同一个，出端口会变多
-			FlowHandler.downFlow(ctl, flow);
+			//TODO out_port重复流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口是同一个，进端口会变多
+			FlowHandler.downFlow(localAddr, flow, "update");
 		}
 
 		groups = new ConcurrentHashMap<>();

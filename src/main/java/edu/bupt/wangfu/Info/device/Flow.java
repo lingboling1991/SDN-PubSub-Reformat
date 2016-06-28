@@ -8,8 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class Flow {
-	//	private static String flowCount;
-//	private String dpid;
+//	private static String flowCount;
 	private int flow_id;
 	private int table_id;
 	private JSONObject jsonContent;
@@ -63,14 +62,6 @@ public class Flow {
 		this.xmlContent = xmlContent;
 	}
 
-//	public String getDpid() {
-//		return dpid;
-//	}
-//
-//	public void setDpid(String dpid) {
-//		this.dpid = dpid;
-//	}
-//
 //	public String getFlowCount() {
 //		return flowCount;
 //	}
@@ -78,6 +69,5 @@ public class Flow {
 //	public void setFlowCount(String flowCount) {
 //		Flow.flowCount = flowCount;
 //	}
-
 
 }

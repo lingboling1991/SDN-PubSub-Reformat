@@ -17,7 +17,7 @@ public class MultiHandler {
 
 	public MultiHandler(int port, String v6addr) {
 		this.port = port;
-		this.v6addr = v6addr;
+		this.v6addr = v6addr;//形如FF01:0000:0000:0000:0001:2345:6789:abcd
 	}
 
 	public Object v6Receive() {
