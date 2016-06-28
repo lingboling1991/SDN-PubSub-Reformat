@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.ldap.policy;
+package edu.bupt.wangfu.info.msg.ldap;
 
 /**
  * @author shoren
@@ -8,12 +8,16 @@ package edu.bupt.wangfu.info.ldap.policy;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ */
+//������Ϣ�и����Ĵ�����Ϣ����Ҫ�����洢�ͻ���Ϣ
 public class TargetRep extends TargetMsg {
 
 	private static final long serialVersionUID = 1L;
 	protected List<TargetHost> targetClients;
 	protected String repIp;
-	protected boolean allMsg = false;
+	protected boolean allMsg = false;  //�Ƿ�����ڲ����г�Ա�����ǰ��������б��Ϊ�ա�
 
 
 	public TargetRep() {
@@ -74,11 +78,13 @@ public class TargetRep extends TargetMsg {
 	public void mergeMsg(TargetRep msg) {
 		if (!this.equals(msg))
 			return;
+		//���msg��������������
 		if (msg.isAllMsg()) {
 			this.setAllMsg(true);
 			targetClients.clear();
 			return;
 		}
+		//�����ǰ��������������
 		if (this.allMsg)
 			return;
 

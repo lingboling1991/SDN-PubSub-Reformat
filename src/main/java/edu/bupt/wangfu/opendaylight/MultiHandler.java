@@ -33,8 +33,7 @@ public class MultiHandler {
 				DatagramPacket datagramPacket = new DatagramPacket(data, data.length);//创建一个用于接收数据的数据包
 				multicastSocket.receive(datagramPacket);//接收数据包
 				ois = new ObjectInputStream(bais);
-				Object obj = ois.readObject();
-				return obj;
+				return ois.readObject();
 			}
 		} catch (Exception exception) {
 			exception.printStackTrace();

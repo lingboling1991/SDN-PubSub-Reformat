@@ -17,7 +17,7 @@ public class DevInfo {
 	private Map<String, Switch> switchs;
 	private Map<Switch, List<Switch>> topology;
 	//key是端口号，value是设备
-	private Map<Integer, DevInfo> wsnDevMap = new ConcurrentHashMap<Integer, DevInfo>();
+	private Map<Integer, DevInfo> wsnDevMap = new ConcurrentHashMap<>();
 
 	public Map<Switch, List<Switch>> getRuntimeTopology() {
 //		RestProcess.downRuntimeTopology();

@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WsnHost extends DevInfo {
 	private String ip;
 	private String mac = null;
-	private Map<String, List<String>> subers = new ConcurrentHashMap<String, List<String>>();
+	private Map<String, List<String>> subers = new ConcurrentHashMap<>();
 
 	public WsnHost(String ip) {
 		this.ip = ip;

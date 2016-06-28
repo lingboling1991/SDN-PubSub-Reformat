@@ -154,8 +154,7 @@ public class WsnGlobleUtil extends SysInfo {
 	public String[] splitString(String source_port) {
 		String[] str;
 		str = source_port.split(":");
-		for (int i = 0; i < str.length; i++)
-			System.out.println(str[i]);
+		for (String aStr : str) System.out.println(aStr);
 		return str;
 	}
 

@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.ldap.policy;
+package edu.bupt.wangfu.info.msg.ldap;
 
 /**
  * @author shoren
@@ -10,6 +10,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ *
+ */
 public class ComplexGroup extends TargetMsg {
 	private static final long serialVersionUID = 1L;
 	protected List<ComplexGroup> complexGroups;

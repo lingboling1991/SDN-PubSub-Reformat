@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.ldap.policy;
+package edu.bupt.wangfu.info.msg.ldap;
 
 /**
  * @author shoren

@@ -5,6 +5,10 @@ import javax.naming.ldap.LdapContext;
 
 public class Main {
 
+	/**
+	 * @param args
+	 * @throws NamingException
+	 */
 	public static void main(String[] args) throws NamingException {
 		TopicEntry all = new TopicEntry("all", "1",
 				"ou=all_test,dc=wsn,dc=com", null);
@@ -53,6 +57,15 @@ public class Main {
 
 		LdapContext ctx = ldap.getContext();
 
+//	    TopicEntry xxx = ldap.getByDN("ou=sub_sub_test_topic2,ou=sub_test_topic1,ou=test_topicTree,dc=wsn,dc=com");
+//	    System.out.println(xxx.getTopicName());
+//	    ldap.rename(sub_sub_t2, "xxxxx");
+//	    String[] attrIDs = {"description"};
+//	    Attributes attrs = ctx.getAttributes("ou=sub_sub_test_topic1,ou=sub_test_topic1,ou=test_topicTree,dc=wsn,dc=com", attrIDs);
+//	    System.out.println(attrs.toString());
+
+//	    ldap.deleteWithAllChildrens(all);
+
 		ldap.create(all);
 
 		ldap.create(alarm);
@@ -86,6 +99,152 @@ public class Main {
 		ldap.create(alarm114);
 		ldap.create(alarm115);
 
+//	    List<TopicEntry> list = ldap.getWithAllChildrens(t);
+//	    for(TopicEntry te : list){
+//	    	System.out.println(te.getTopicCode());
+//	    }
+//	    System.out.println(ldap.getByDN("ou=test_topicTree,dc=wsn,dc=com").getTopicCode());
+
+
 		ldap.close();
+
+//
+//		//????OpenLDAP????????????????LdapContext????????
+//		LdapUtil lu = new LdapUtil();
+//		lu.connectLdap();
+//		LdapContext ctx = lu.getContext();
+//		
+//		TopicEntry t = new TopicEntry("test_topic", "123456789", 
+//				"ou=test_topic,ou=topic1,ou=root-topicTree,dc=maxcrc,dc=com");
+//		
+//		ctx.bind("ou=test_topic,ou=topic1,ou=root-topicTree,dc=maxcrc,dc=com", t);
+//
+//		lu.closeContext();
+
+
+		// Set up environment for creating initial context
+//	    Hashtable<String, Object> env = new Hashtable<String, Object>(11);
+//	    env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+//	    env.put(Context.PROVIDER_URL, "ldap://localhost:389");
+//	    //set the authentication mode
+//		env.put(Context.SECURITY_AUTHENTICATION, "simple");
+//		//set user of ldap server
+//		env.put(Context.SECURITY_PRINCIPAL, "cn=Manager,dc=wsn,dc=com");
+//		//set password of user
+//		env.put(Context.SECURITY_CREDENTIALS, "123456");
+
+
+//		try {
+//		      // Create the initial context
+////		      Context ctx = new InitialContext(env);
+//			LdapContext ctx = new InitialLdapContext(env, null);
+//
+//		      // Create the object to be bound
+//		      Fruit fruit = new Fruit("orange");
+//
+//		      Attributes attrs = new BasicAttributes();
+//		      attrs.put("ou", "TopicEntry");
+//		      attrs.put("ou", "test_topic");
+//		      BasicAttribute objectclassSet = new BasicAttribute("objectclass");
+//		      objectclassSet.add("top");
+//		      objectclassSet.add("organizationalUnit");
+//		      objectclassSet.add("javaClassName");
+//		      objectclassSet.add("TopicEntry");
+//		      attrs.put(objectclassSet);
+//		      attrs.put("javaClassName", fruit.getClass().getName());
+//		      
+//		      
+//		      
+//		      
+//		      // Perform the bind
+//		      ctx.rebind("ou=test_topic,ou=root-topicTree,dc=maxcrc,dc=com", fruit, attrs);
+//
+//		      // Check that it is bound
+//		      Object obj = ctx.lookup("ou=test_topic,ou=root-topicTree,dc=maxcrc,dc=com");
+//		      System.out.println(obj);
+//
+//		      // Close the context when we're done
+//		      ctx.close();
+//		    } catch (NamingException e) {
+//		      System.out.println("Operation failed: " + e);
+//		    }
+//		
+
+
+//	    try {
+//	      // Create the initial context
+////	      Context ctx = new InitialContext(env);
+//	      LdapContext ctx = new InitialLdapContext(env, null);
+////	    	DirContext ctx = new InitialLdapContext(env, null);
+//	    	
+
+		// Create object to be bound
+		//Button b = new Button("Push me");
+
+
+//	      Attributes attrs = new BasicAttributes();
+////	      attrs.put("ou", "TopicEntry");
+////	      attrs.put("ou", "test_topic");
+//	      BasicAttribute objectclassSet = new BasicAttribute("objectclass");
+//	      objectclassSet.add("top");
+//	      objectclassSet.add("organizationalUnit");
+////	      objectclassSet.add("javaCodebase");
+//	      attrs.put(objectclassSet);
+//	      attrs.put("javaCodebase", "http://com.shmily.main/classes");
+		// Perform bind
+//	      ctx.rebind("ou=test_topic,dc=wsn,dc=com", t, attrs);
+
+//	      Attributes attributes = ctx.getAttributes("ou=test_topic,ou=root-topicTree,dc=maxcrc,dc=com");
+//	      AttributesMapper mapper = new 
+//	      mapper.mapFromAttributes(attributes);
+		// Check that it is bound
+//	      System.out.println(ctx.lookup("ou=test_topic,ou=root-topicTree,dc=maxcrc,dc=com"));
+//	      TopicEntry b2 = (TopicEntry) ctx.lookup("ou=test_topic,dc=wsn,dc=com");
+//	      System.out.println(b2.getTopicPath());
+
+		// Close the context when we're done
+//	      ctx.close();
 	}
+
 }
+
+//class Fruit implements Referenceable {
+//	  String fruit;
+//
+//	  public Fruit(String f) {
+//	    fruit = f;
+//	  }
+//
+//	  public Reference getReference() throws NamingException {
+//
+//	    return new Reference(Fruit.class.getName(), new StringRefAddr("fruit",
+//	        fruit), FruitFactory.class.getName(), null); // factory location
+//	  }
+//
+//	  public String toString() {
+//	    return fruit;
+//	  }
+//}
+//
+//
+//class FruitFactory implements ObjectFactory {
+//
+//	  public FruitFactory() {
+//	  }
+//
+//	  public Object getObjectInstance(Object obj, Name name, Context ctx,
+//	      Hashtable<?, ?> env) throws Exception {
+//
+//	    if (obj instanceof Reference) {
+//	      Reference ref = (Reference) obj;
+//
+//	      if (ref.getClassName().equals(Fruit.class.getName())) {
+//	        RefAddr addr = ref.get("fruit");
+//	        if (addr != null) {
+//	          return new Fruit((String) addr.getJsonContent());
+//	        }
+//	      }
+//	    }
+//	    return null;
+//	  }
+//	}

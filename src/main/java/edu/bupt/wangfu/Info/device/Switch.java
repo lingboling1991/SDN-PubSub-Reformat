@@ -21,7 +21,7 @@ public class Switch extends DevInfo {
 	private List<Flow> flows;
 
 	//devices connected to each port of the switch
-	private Map<Integer, DevInfo> wsnHostMap = new ConcurrentHashMap<Integer, DevInfo>();
+	private Map<Integer, DevInfo> wsnHostMap = new ConcurrentHashMap<>();
 	private Map<Integer, List<Queue>> queues;//一个端口有多个队列
 
 	public Switch(String DPID) {

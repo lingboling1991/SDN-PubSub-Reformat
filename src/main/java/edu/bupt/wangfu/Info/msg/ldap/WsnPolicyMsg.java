@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.ldap.policy;
+package edu.bupt.wangfu.info.msg.ldap;
 
 /**
  * @author shoren
@@ -7,12 +7,27 @@ package edu.bupt.wangfu.info.ldap.policy;
 
 import java.util.*;
 
+/**
+ * ������Ϣ��
+ * ������Ϣ�����ڴ����ļ��У����º��ֱ���滻���޸��ļ���
+ * ������Ϣ����һ��xml�ļ��У���Ϊ������Ϣ���Ǻܶ����
+ */
 public class WsnPolicyMsg implements java.io.Serializable {
 	private static final long serialVersionUID = 1L;
-	private String targetTopic;
-	private List<TargetGroup> targetGroups;
-	private List<ComplexGroup> complexGroups;
-	private Set<TargetGroup> allGroups;
+	//�����ʱ�ò���
+//	private String targetMsgStyle;
+	protected String targetTopic;
+	protected List<TargetGroup> targetGroups;
+	protected List<ComplexGroup> complexGroups;
+	//����ǽ����е�ComplexGroup�����
+	private Set<TargetGroup> allGroups;  
+/*	public String getTargetMsgStyle() {
+		return targetMsgStyle;
+	}
+
+	public void setTargetMsgStyle(String targetMsgStyle) {
+		this.targetMsgStyle = targetMsgStyle;
+	}*/
 
 	public WsnPolicyMsg() {
 		this(null, null, null);
@@ -26,6 +41,7 @@ public class WsnPolicyMsg implements java.io.Serializable {
 		this(targetTopic, complexGroups, null);
 	}
 
+	//����һ������������Ϣ
 	public WsnPolicyMsg(String targetTopic, List<ComplexGroup> complexGroups, List<TargetGroup> targetGroups) {
 		this.targetTopic = targetTopic;
 		this.complexGroups = new ArrayList<ComplexGroup>();
@@ -57,6 +73,9 @@ public class WsnPolicyMsg implements java.io.Serializable {
 		return allGroups;
 	}
 
+
+	//
+	@SuppressWarnings("rawtypes")
 	public void mergeMsg(WsnPolicyMsg msg) {
 		if (!getTargetTopic().equals(msg.getTargetTopic()))
 			return;
@@ -67,21 +86,27 @@ public class WsnPolicyMsg implements java.io.Serializable {
 
 		if (cgs.isEmpty() && !tgs.isEmpty()
 				&& (msg.getTargetGroups().size() == 1)) {
-			getAllGroups();//update allGroups.
+			getAllGroups();      //update allGroups.
 			TargetGroup ttg = tgs.get(0);
+			//���û�д˼�Ⱥ������룬���У�������merge��
 			if (!allGroups.contains(ttg))
 				targetGroups.add(ttg);
 			else {
+				//����merge
 				Iterator it = allGroups.iterator();
 				while (it.hasNext()) {
 					TargetGroup tg = (TargetGroup) it.next();
 					if (tg.equals(ttg)) {
+						//merge group
 						tg.mergeMsg(ttg);
 						break;
 					}
 				}
 			}
 		} else {
+			//add groups simply
+			//��������¼����groups���Ͱ�֮ǰ��ɾ��������µģ���Ϊ�µ�Ĭ����
+			//�����ڲ����г�Ա��
 			if (!cgs.isEmpty()) {
 				for (int i = 0; i < cgs.size(); i++) {
 					ComplexGroup cg = cgs.get(i);
@@ -133,13 +158,16 @@ public class WsnPolicyMsg implements java.io.Serializable {
 				targetGroups.remove(index);
 			}
 
-			getAllGroups();//update allGroups.
+			getAllGroups();      //update allGroups.
 
+			//��������˼�Ⱥ����delete
 			if (allGroups.contains(ttg)) {
+				//����
 				Iterator it = allGroups.iterator();
 				while (it.hasNext()) {
 					TargetGroup tg = (TargetGroup) it.next();
 					if (tg.equals(ttg)) {
+						//merge group
 						tg.deleteMsg(ttg);
 						break;
 					}
@@ -192,3 +220,12 @@ public class WsnPolicyMsg implements java.io.Serializable {
 		this.targetGroups = targetGroups;
 	}
 }
+
+
+
+
+
+
+
+
+
