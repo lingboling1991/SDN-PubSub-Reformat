@@ -1,6 +1,7 @@
 package edu.bupt.wangfu.mgr.message;
 
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
+import edu.bupt.wangfu.info.msg.udp.MsgHello_;
 import edu.bupt.wangfu.mgr.base.RtMgr;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.topology.DtMgr;
@@ -27,10 +28,16 @@ public class MsgHandler extends SysInfo {
 		this.rt = rt;
 	}
 
-	public void processUdpMsg(Object msg) {
+	void processUdpMsg(Object msg) {
 		if (msg instanceof MsgHello) {
 			MsgHello mh = (MsgHello) msg;
-			dt.onMsg(mh);
+			dt.onHello(mh);
+		} else if (msg instanceof MsgHello_) {
+			MsgHello_ mh_ = (MsgHello_) msg;
+			if (groupName.equals(mh_.dstGroup) &&
+					outPorts.keySet().contains(mh_.dstPort))
+				//这条消息是针对 本集群groupName 的 对外端口dstPort 的回复
+				dt.onReply(mh_);
 		}
 	}
 }

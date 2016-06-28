@@ -7,12 +7,12 @@ import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 /**
  * Created by lenovo on 2016-6-23.
  */
-public class HelloReceiver extends SysInfo implements Runnable {
+public class ReplyReceiver extends SysInfo implements Runnable {
 	private MultiHandler multiHandler;
 	private MsgHandler msgHandler;
 
-	public HelloReceiver() {
-		String v6addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello");
+	public ReplyReceiver() {
+		String v6addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_");
 		multiHandler = new MultiHandler(uPort, v6addr);
 		msgHandler = MsgHandler.getInstance();
 	}
@@ -21,7 +21,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	public void run() {
 		while (true) {
 			Object msg = multiHandler.v6Receive();
-			//收到邻居发来的hello消息
+			//收到邻居回复的消息
 			msgHandler.processUdpMsg(msg);
 		}
 	}

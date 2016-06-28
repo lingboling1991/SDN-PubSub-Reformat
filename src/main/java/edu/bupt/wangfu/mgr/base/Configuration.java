@@ -62,11 +62,5 @@ public class Configuration extends SysInfo {
 			//TODO out_port重复流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口是同一个，进端口会变多
 			FlowHandler.downFlow(localAddr, flow, "update");
 		}
-
-		groups = new ConcurrentHashMap<>();
-		subTable = new ArrayList<>();
-		lsdb = new ConcurrentHashMap<>();
-		neighbors = new ArrayList<>();
-		lsaSeqNum = 0;
 	}
 }

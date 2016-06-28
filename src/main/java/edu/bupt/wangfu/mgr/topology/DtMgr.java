@@ -86,7 +86,7 @@ public class DtMgr extends SysInfo {
 		handler.v6Send(reply);
 	}
 
-	public void onMsg(MsgHello mh) {
+	public void onHello(MsgHello mh) {
 		for (String port : outPorts.keySet()) {
 			Flow flow = FlowHandler.generateFlow(localSwitch, wsn2swt, port,
 					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_"), "");
@@ -96,6 +96,10 @@ public class DtMgr extends SysInfo {
 
 			FlowHandler.deleteFlow(localAddr, flow);
 		}
+	}
+
+	public void onReply(MsgHello_ mh_) {
+		neighbors.add(mh_.srcGroup);
 	}
 
 	//向节点的邻居发送hello消息
