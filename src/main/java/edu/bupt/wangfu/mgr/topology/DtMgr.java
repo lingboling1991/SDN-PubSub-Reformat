@@ -84,8 +84,8 @@ public class DtMgr extends SysInfo {
 
 	public void onHello(MsgHello mh) {
 		for (String port : outPorts.keySet()) {
-			Flow flow = FlowHandler.generateFlow(localSwitch, wsn2swt, port,
-					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_"), "");
+			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
+					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_"), 0, 1);
 			FlowHandler.downFlow(localAddr, flow, "update");
 
 			replyHello(mh);
@@ -140,13 +140,13 @@ public class DtMgr extends SysInfo {
 			WsnGlobleUtil.initGroup(localAddr, localSwitch);//更新switchSet，outPorts
 
 			for (String port : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
-				Flow flow = FlowHandler.generateFlow(localSwitch, wsn2swt, port,
-						WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), "");
+				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
+						WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), 0, 1);
 				FlowHandler.downFlow(localAddr, flow, "add");
 
 				sendHello(port);
 
-				FlowHandler.deleteFlow(localAddr, flow);
+				FlowHandler.deleteFlow(localAddr, flow);//
 			}
 		}
 	}

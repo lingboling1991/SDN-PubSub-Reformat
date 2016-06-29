@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class FlowHandler extends SysInfo {
 	private static FlowHandler ins;
-	private static int flowcount;
+	private int flowcount = 0;
 
 	private FlowHandler() {
 		this.flowcount = 0;
@@ -112,13 +112,6 @@ public class FlowHandler extends SysInfo {
 //		return f;
 //	}
 
-	public static Flow generateFlow(String swtId, String in, String out, String topic, String action) {
-		Flow flow = new Flow();
-		//swt是switch在odl里的id，并不是mac或者dpid
-		//这里是wsn向admin发探测消息，admin回复这个消息所用的flow
-		return flow;
-	}
-
 	public static boolean downFlows(String controller, List<Flow> flows, List<String> actions) {
 		boolean success = false;
 		for (Flow flow : flows) {
@@ -140,9 +133,17 @@ public class FlowHandler extends SysInfo {
 		return RestProcess.doClientDelete(url).equals("200");
 	}
 
-
 	public static boolean downFlow(String controller, Flow flow, String action) {
 		//TODO 这里还要考虑下发到具体哪个流表里，看要执行的动作是 更新流表项 还是 添加新流表项
 		return RestProcess.doClientPost(controller, flow.getJsonContent()).get(0).equals("200");
+	}
+
+	public Flow generateFlow(String swtId, String in, String out, String topic, int t_id, int pri) {
+		//swtId是switch在odl里的id，并不是mac或者dpid
+		String table_id = String.valueOf(t_id);
+		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
+
+		Flow flow = new Flow();
+		return flow;
 	}
 }

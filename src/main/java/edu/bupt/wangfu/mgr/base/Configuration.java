@@ -31,7 +31,7 @@ public class Configuration extends SysInfo {
 		adminAddr = props.getProperty("adminAddress");
 		adminPort = Integer.valueOf(props.getProperty("adminPort"));
 		groupName = props.getProperty("localGroupName");
-		localAddr = props.getProperty("localAddress");
+		localAddr = props.getProperty("localAddress");//!!!
 		tPort = Integer.valueOf(props.getProperty("tPort"));
 		uPort = Integer.valueOf(props.getProperty("uPort"));
 
@@ -44,6 +44,7 @@ public class Configuration extends SysInfo {
 		lsdb = new ConcurrentHashMap<>();
 
 		//TODO 向谁获知控制器地址，因为要从controlllers里选集群控制器
+		//向周围广播，请求本集群代表，然后向主控制器所在主机注册，节点自己维护controllers
 		WsnGlobleUtil.setController(localAddr);
 		WsnHost node = new WsnHost(localAddr);
 		String hostMac = node.getMac();
@@ -56,9 +57,9 @@ public class Configuration extends SysInfo {
 		//这里先假设一个集群只有一个交换机
 		for (String port : outPorts.keySet()) {
 			//这里是“向外的端口进消息，wsn收消息”的流表
-			Flow flow = FlowHandler.generateFlow(localSwitch, port, wsn2swt,
-					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), "");
-			//TODO out_port重复流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口是同一个，进端口会变多
+			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, port, wsn2swt,
+					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), 0, 1);
+			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
 			FlowHandler.downFlow(localAddr, flow, "update");
 		}
 	}
