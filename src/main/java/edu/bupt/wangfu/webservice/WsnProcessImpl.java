@@ -7,7 +7,7 @@ import javax.jws.WebService;
  */
 
 @WebService(endpointInterface = "edu.bupt.wangfu.webservice.WsnProcess", serviceName = "WsnProcess")
-public class WsnProcessImpl implements WsnProcess {
+public class                                                                                 WsnProcessImpl implements WsnProcess {
 
 	public String wsnProcess(String message) {
 		return null;
