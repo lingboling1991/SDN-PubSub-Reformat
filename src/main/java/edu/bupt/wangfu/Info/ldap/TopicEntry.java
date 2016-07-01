@@ -1,7 +1,7 @@
 package edu.bupt.wangfu.info.ldap;
 
-
 import edu.bupt.wangfu.info.msg.ldap.WsnPolicyMsg;
+import org.w3c.dom.Document;
 
 /**
  * ??????????????OpenLDAP??????????????????????????
@@ -17,6 +17,7 @@ public class TopicEntry implements java.io.Serializable {
 	private String topicCode = null;
 	private String topicPath = null;
 	private WsnPolicyMsg wsnpolicymsg = null;
+	private Document schema;
 
 	public TopicEntry() {
 	}
@@ -64,5 +65,9 @@ public class TopicEntry implements java.io.Serializable {
 	@Override
 	public String toString() {
 		return getTopicName();
+	}
+
+	public Document getSchema() {
+		return schema;
 	}
 }
