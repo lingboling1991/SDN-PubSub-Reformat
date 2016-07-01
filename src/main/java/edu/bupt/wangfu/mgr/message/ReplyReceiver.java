@@ -12,7 +12,7 @@ public class ReplyReceiver extends SysInfo implements Runnable {
 	private MsgHandler msgHandler;
 
 	public ReplyReceiver() {
-		String v6addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_");
+		String v6addr = WsnGlobleUtil.getSysTopicMap().get("hello_");
 		multiHandler = new MultiHandler(uPort, v6addr);
 		msgHandler = MsgHandler.getInstance();
 	}

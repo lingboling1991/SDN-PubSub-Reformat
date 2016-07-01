@@ -33,7 +33,6 @@ public class DtMgr extends SysInfo {
 	public DtMgr(RtMgr rtMgr) {
 		this.rtMgr = rtMgr;
 		neighbors = new ConcurrentHashMap<>();
-		helloTimer = new Timer();
 
 		//lcw 这里可以变成从管理员读取，那么就需要向管理员请求信息
 		Properties props = new Properties();
@@ -45,19 +44,20 @@ public class DtMgr extends SysInfo {
 		}
 
 		threshold = Long.parseLong(props.getProperty("threshold"));//判断失效阀值
-		sendPeriod = Long.parseLong((props.getProperty("sendPeriod")));//发送周期
+		sendPeriod = Long.parseLong(props.getProperty("sendPeriod"));//发送周期
 	}
 
 	public void startSendTask() {
 		if (sendTask != null)
 			sendTask.cancel();
 		sendTask = new SendTask();
+		helloTimer = new Timer();
 		helloTimer.schedule(sendTask, sendPeriod, sendPeriod);
 	}
 
 	private void sendHello(String port) {
 		MsgHello hello = new MsgHello();
-		String addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello");
+		String addr = WsnGlobleUtil.getSysTopicMap().get("hello");
 		MultiHandler handler = new MultiHandler(uPort, addr);
 
 		hello.indicator = localAddr;
@@ -70,7 +70,7 @@ public class DtMgr extends SysInfo {
 
 	private void replyHello(MsgHello mh) {
 		MsgHello_ reply = new MsgHello_();
-		String addr = WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_");
+		String addr = WsnGlobleUtil.getSysTopicMap().get("hello_");
 		MultiHandler handler = new MultiHandler(uPort, addr);
 
 		reply.srcSwitch = localSwitch;
@@ -85,12 +85,12 @@ public class DtMgr extends SysInfo {
 	public void onHello(MsgHello mh) {
 		for (String port : outPorts.keySet()) {
 			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
-					WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello_"), 0, 1);
-			FlowHandler.downFlow(localAddr, flow, "update");
+					WsnGlobleUtil.getSysTopicMap().get("hello_"), 0, 1);
+			FlowHandler.downFlow(localCtl, flow, "update");
 
 			replyHello(mh);
 
-			FlowHandler.deleteFlow(localAddr, flow);
+			FlowHandler.deleteFlow(localCtl, flow);
 		}
 	}
 
@@ -137,16 +137,16 @@ public class DtMgr extends SysInfo {
 	private class SendTask extends TimerTask {
 		@Override
 		public void run() {
-			WsnGlobleUtil.initGroup(localAddr, localSwitch);//更新switchSet，outPorts
+			WsnGlobleUtil.initGroup(localSwitch);//更新switchSet，outPorts
 
 			for (String port : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
 				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
-						WsnGlobleUtil.getSysTopicMap().get("wsn2out_hello"), 0, 1);
-				FlowHandler.downFlow(localAddr, flow, "add");
+						WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
+				FlowHandler.downFlow(localCtl, flow, "add");
 
 				sendHello(port);
 
-				FlowHandler.deleteFlow(localAddr, flow);//
+				FlowHandler.deleteFlow(localCtl, flow);//这里不删的话，后面就会在匹配的时候混乱
 			}
 		}
 	}

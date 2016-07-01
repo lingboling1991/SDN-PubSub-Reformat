@@ -52,19 +52,15 @@ public class Controller {
 public class Controller {
 	public String url;
 
-
 	//all switches in the group
 	private Map<String, Switch> switchMap = new ConcurrentHashMap<>();
 
-
 	private Switch repSwitch;
-
 
 	//switchs connected to other groups, cross-group route calc need
 	private Map<String, Switch> boardSwitch = new ConcurrentHashMap<>();
 
 	private List<String> topics = new ArrayList<>();
-
 
 	public Controller(String controllerAddr) {
 		this.url = controllerAddr;
@@ -106,17 +102,5 @@ public class Controller {
 
 	public void setSwitchMap(Map<String, Switch> switchMap) {
 		this.switchMap = switchMap;
-	}
-
-	/*public void reflashSwitchMap() {
-		switchMap = WsnGlobleUtil.getRealtimeSwitchs2(this);
-	}*/
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
 	}
 }

@@ -1,5 +1,6 @@
 package edu.bupt.wangfu.mgr.base;
 
+import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Port;
 import edu.bupt.wangfu.info.msg.udp.GroupUnit;
 import edu.bupt.wangfu.info.msg.udp.LSA;
@@ -19,6 +20,8 @@ public abstract class SysInfo {
 	//	public static String multiAddr;//群内组播地址
 	public static int uPort;//UDP端口号，同时也是组播端口号
 	public static int tPort;//TCP端口号
+	public static Controller localCtl;//节点控制器
+	public static Controller groupCtl;//集群控制器
 	//拓扑
 	public static String localSwitch;//wsn连接的switch的id
 	public static String wsn2swt;//wsn连接switch，switch上的的端口

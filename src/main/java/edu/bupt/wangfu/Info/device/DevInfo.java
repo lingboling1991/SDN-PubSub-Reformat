@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DevInfo {
-	private static DevInfo INSTANCE = null;
 	private String url;
 	private String mac;
 	private String port;

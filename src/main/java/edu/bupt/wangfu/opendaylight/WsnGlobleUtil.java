@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,8 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class WsnGlobleUtil extends SysInfo {
 	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();
-	private static Controller groupController;
-	private static HashMap<String, Controller> controllers = new HashMap<>();//集群内所有的控制器
+	private static ConcurrentHashMap<String, Controller> controllers = new ConcurrentHashMap<>();//集群内所有的控制器
 
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
@@ -63,8 +61,8 @@ public class WsnGlobleUtil extends SysInfo {
 		return notifyTopicList;
 	}
 
-	public static void initGroup(String controller, String swtId) {
-		String url = controller + "/restconf/operational/network-topology:network-topology/";
+	public static void initGroup(String swtId) {
+		String url = localCtl.url + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
@@ -113,9 +111,9 @@ public class WsnGlobleUtil extends SysInfo {
 		outPorts = tmp;
 	}
 
-	public static String getLinkedSwtId(String controller, String wsnMac) {
+	public static String getLinkedSwtId(String wsnMac) {
 		//返回wsn程序所在主机所连Switch的odl_id
-		String url = controller + "/restconf/operational/network-topology:network-topology/";
+		String url = localCtl.url + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
@@ -140,36 +138,10 @@ public class WsnGlobleUtil extends SysInfo {
 		return null;
 	}
 
-	public static Controller getGroupController() {
-		return groupController;
-	}
-
-	public static void setController(String groupCtlUrl) {
-		//TODO 这后面还需要添加当前掉线后如何设置新控制器
-		controllers.put(groupCtlUrl, new Controller(groupCtlUrl));
-		groupController = controllers.get(groupCtlUrl);
-	}
-
 	public String[] splitString(String source_port) {
 		String[] str;
 		str = source_port.split(":");
 		for (String aStr : str) System.out.println(aStr);
 		return str;
-	}
-
-	public HashSet<String> getHostSet() {
-		return hostSet;
-	}
-
-	public void setHostSet(HashSet<String> hostSet) {
-		WsnGlobleUtil.hostSet = hostSet;
-	}
-
-	public HashSet<String> getSwitchSet() {
-		return switchSet;
-	}
-
-	public void setSwitchSet(HashSet<String> switchSet) {
-		WsnGlobleUtil.switchSet = switchSet;
 	}
 }
