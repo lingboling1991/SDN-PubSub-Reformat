@@ -2,7 +2,7 @@ package edu.bupt.wangfu.mgr.base;
 
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
-import edu.bupt.wangfu.info.device.WsnHost;
+import edu.bupt.wangfu.info.device.Host;
 import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl;
 import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl_;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
@@ -56,7 +56,7 @@ public class Configuration extends SysInfo {
 
 		//TODO 向谁获知控制器地址，因为要从controlllers里选集群控制器
 		//向周围广播，请求本集群代表，然后向主控制器所在主机注册，节点自己维护controllers
-		WsnHost node = new WsnHost(localAddr);
+		Host node = new Host(localAddr);
 		String hostMac = node.getMac();
 
 		//起线程定时查询，直到groupCtl被赋值再cancel

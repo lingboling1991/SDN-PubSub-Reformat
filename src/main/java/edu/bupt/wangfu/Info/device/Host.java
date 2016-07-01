@@ -11,17 +11,17 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by root on 15-10-5.
  */
-public class WsnHost extends DevInfo {
+public class Host extends DevInfo {
 	private String ip;
 	private String mac = null;
 	private Map<String, List<String>> subers = new ConcurrentHashMap<>();
 
-	public WsnHost(String ip) {
+	public Host(String ip) {
 		this.ip = ip;
 	}
 
 	public static void main(String[] args) {
-		WsnHost x = new WsnHost("10.108.166.15");
+		Host x = new Host("10.108.166.15");
 		System.out.println(x.getMac());
 	}
 
