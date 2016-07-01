@@ -11,7 +11,7 @@ public class Start {
 		Configuration.configure();//这里进行配置，配置文件的内容写到SysInfo里
 		System.out.println("init started");
 
-		new Thread(new mgrInstance()).start();//this really happening
+		new Thread(new mgrInstance()).start();
 	}
 
 	private static class mgrInstance implements Runnable {
