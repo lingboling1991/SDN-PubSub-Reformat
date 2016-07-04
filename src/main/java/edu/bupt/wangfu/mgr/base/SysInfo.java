@@ -39,4 +39,7 @@ public abstract class SysInfo {
 	//LSDB
 	public static int lsaSeqNum;//LSA的序列号
 	public static ConcurrentHashMap<String, LSA> lsdb;//LSA数据库，以集群名称标示该集群发出的LSA消息
+	//心跳管理器
+	public long threshold;//失效阀值的缺省值
+	public long sendPeriod;//发送频率的缺省值
 }

@@ -2,8 +2,7 @@ package edu.bupt.wangfu.mgr.base;
 
 import edu.bupt.wangfu.mgr.message.DetectReceiver;
 import edu.bupt.wangfu.mgr.message.HelloReceiver;
-import edu.bupt.wangfu.mgr.message.MsgHandler;
-import edu.bupt.wangfu.mgr.message.ReplyReceiver;
+import edu.bupt.wangfu.mgr.message.Hello_Receiver;
 import edu.bupt.wangfu.mgr.topology.DtMgr;
 
 /**
@@ -17,14 +16,12 @@ public class RtMgr extends SysInfo {
 		dt = new DtMgr(this);
 		dt.startSendTask();//这里只管发送，流表在configure()时已经下发了
 
-		MsgHandler.getInstance().init(dt, this);
-
 		Thread helloRecv = new Thread(new HelloReceiver());
-		Thread replyRecv = new Thread(new ReplyReceiver());
+		Thread hello_Recv = new Thread(new Hello_Receiver());
 		Thread detectRecv = new Thread(new DetectReceiver());
 
 		helloRecv.start();
-		replyRecv.start();
+		hello_Recv.start();
 		detectRecv.start();
 	}
 

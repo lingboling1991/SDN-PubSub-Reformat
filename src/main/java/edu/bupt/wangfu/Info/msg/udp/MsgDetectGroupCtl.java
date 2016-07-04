@@ -8,7 +8,7 @@ import java.io.Serializable;
 public class MsgDetectGroupCtl implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	public String indicator;
+	public String indicator;//集群名
 
 	public MsgDetectGroupCtl(String indicator) {
 		this.indicator = indicator;

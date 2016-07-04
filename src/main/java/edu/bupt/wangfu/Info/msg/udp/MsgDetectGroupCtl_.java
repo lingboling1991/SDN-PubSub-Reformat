@@ -11,8 +11,10 @@ public class MsgDetectGroupCtl_ implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public Controller groupCtl;
+	public String groupName;
 
-	public MsgDetectGroupCtl_(Controller groupCtl) {
+	public MsgDetectGroupCtl_(String groupName, Controller groupCtl) {
 		this.groupCtl = groupCtl;
+		this.groupName = groupName;
 	}
 }

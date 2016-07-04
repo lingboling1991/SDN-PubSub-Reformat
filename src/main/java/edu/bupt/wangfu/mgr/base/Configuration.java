@@ -21,8 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Configuration extends SysInfo {
 	private static DetectTask detectTask; //广播获取groupCtl消息的计时器
 	private static Timer detectTimer; //广播获取groupCtl消息的计时器
-
-	private static long detectPeriod;
+	private static int count = 0;
 
 	public static void configure() {
 		Properties props = new Properties();
@@ -42,7 +41,7 @@ public class Configuration extends SysInfo {
 		tPort = Integer.valueOf(props.getProperty("tPort"));
 		uPort = Integer.valueOf(props.getProperty("uPort"));
 
-		detectPeriod = Long.parseLong(props.getProperty("detectPeriod"));//广播请求信息周期
+		long detectPeriod = Long.parseLong(props.getProperty("detectPeriod"));
 
 		groups = new ConcurrentHashMap<>();
 		neighbors = new ConcurrentHashMap<>();
@@ -80,24 +79,33 @@ public class Configuration extends SysInfo {
 	}
 
 	private static void getGroupController() {
-		//TODO 这里还需要细化
+		//TODO 这里是一跳
 		MultiHandler handler = new MultiHandler(uPort, WsnGlobleUtil.getSysTopicMap().get("groupCtl"));
 		MsgDetectGroupCtl msg = new MsgDetectGroupCtl(groupName);
 		handler.v6Send(msg);
 
-		Object res = handler.v6Receive();
-
-		groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
+		Object res = handler.v6Receive();//收到的第一个回复决定了这个集群的集群控制器是谁
+		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
+		if (mdgc_.groupName.equals(groupName)) {
+			groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
+		}
 	}
 
 	private static class DetectTask extends TimerTask {
 		@Override
 		public void run() {
 			if (localSwitch != null && portWsn2Swt != null) {
+				count++;
+
+				//五次探测且都没有回应，说明自己是集群内唯一的节点，那么groupCtl就是本地的Ctl
+				if (count >= 5 && groupCtl == null) {
+					groupCtl = localCtl;
+				}
 				if (groupCtl != null) {
 					detectTask.cancel();
 					detectTimer.cancel();
 				}
+
 				//生成一条flood流表，用来向周围请求groupController信息
 				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, "flood",
 						WsnGlobleUtil.getSysTopicMap().get("groupCtl"), 0, 1);
