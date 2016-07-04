@@ -8,16 +8,17 @@ import edu.bupt.wangfu.mgr.base.RtMgr;
  */
 public class Start {
 	public static void main(String[] args) {
+		System.out.println("config start");
 		Configuration.configure();//这里进行配置，配置文件的内容写到SysInfo里
-		System.out.println("init started");
+		System.out.println("config done");
 
+		System.out.println("mgr thread start");
 		new Thread(new mgrInstance()).start();
 	}
 
 	private static class mgrInstance implements Runnable {
 		public void run() {
 			RtMgr.getInstance();
-			System.out.println("init finished");
 		}
 	}
 }

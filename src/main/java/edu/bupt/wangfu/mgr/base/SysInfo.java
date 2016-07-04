@@ -24,7 +24,7 @@ public abstract class SysInfo {
 	public static Controller groupCtl;//集群控制器
 	//拓扑
 	public static String localSwitch;//wsn连接的switch的id
-	public static String wsn2swt;//wsn连接switch，switch上的的端口
+	public static String portWsn2Swt;//wsn连接switch，switch上的的端口
 	public static ConcurrentHashMap<String, GroupUnit> groups;//当前拓扑内，其他所有集群的信息，key为集群名；用的时候直接向controller请求
 	public static ConcurrentHashMap<String, GroupUnit> neighbors; //邻居集群，与上面groupMap区分开，这个是直接连接的；
 	// key是连接的端口，value是对面的集群名

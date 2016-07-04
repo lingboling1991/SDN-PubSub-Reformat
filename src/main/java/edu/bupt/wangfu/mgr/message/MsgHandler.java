@@ -1,5 +1,7 @@
 package edu.bupt.wangfu.mgr.message;
 
+import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl;
+import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl_;
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
 import edu.bupt.wangfu.info.msg.udp.MsgHello_;
 import edu.bupt.wangfu.mgr.base.RtMgr;
@@ -35,6 +37,11 @@ public class MsgHandler extends SysInfo {
 		} else if (msg instanceof MsgHello_) {
 			MsgHello_ mh_ = (MsgHello_) msg;
 			dt.onReply(mh_);
+		} else if (msg instanceof MsgDetectGroupCtl) {
+			MsgDetectGroupCtl mdgc = (MsgDetectGroupCtl) msg;
+			if (groupName == mdgc.indicator && groupCtl != null) {
+				MsgDetectGroupCtl_ mdgc_ = new MsgDetectGroupCtl_(groupName, groupCtl);
+			}
 		}
 	}
 }

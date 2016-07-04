@@ -34,7 +34,7 @@ public class DtMgr extends SysInfo {
 		this.rtMgr = rtMgr;
 		neighbors = new ConcurrentHashMap<>();
 
-		//lcw 这里可以变成从管理员读取，那么就需要向管理员请求信息
+		//TODO 这里可以变成从管理员读取，那么就需要向管理员请求信息
 		Properties props = new Properties();
 		String propertiesPath = "DtConfig.properties";
 		try {
@@ -84,7 +84,7 @@ public class DtMgr extends SysInfo {
 
 	public void onHello(MsgHello mh) {
 		for (String port : outPorts.keySet()) {
-			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
+			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, port,
 					WsnGlobleUtil.getSysTopicMap().get("hello_"), 0, 1);
 			FlowHandler.downFlow(localCtl, flow, "update");
 
@@ -140,7 +140,7 @@ public class DtMgr extends SysInfo {
 			WsnGlobleUtil.initGroup(localSwitch);//更新switchSet，outPorts
 
 			for (String port : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
-				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, port,
+				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, port,
 						WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
 				FlowHandler.downFlow(localCtl, flow, "add");
 

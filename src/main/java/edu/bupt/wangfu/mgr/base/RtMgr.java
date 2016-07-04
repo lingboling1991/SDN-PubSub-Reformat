@@ -1,5 +1,6 @@
 package edu.bupt.wangfu.mgr.base;
 
+import edu.bupt.wangfu.mgr.message.DetectReceiver;
 import edu.bupt.wangfu.mgr.message.HelloReceiver;
 import edu.bupt.wangfu.mgr.message.MsgHandler;
 import edu.bupt.wangfu.mgr.message.ReplyReceiver;
@@ -18,11 +19,13 @@ public class RtMgr extends SysInfo {
 
 		MsgHandler.getInstance().init(dt, this);
 
-		Thread hrt = new Thread(new HelloReceiver());
-		Thread rrt = new Thread(new ReplyReceiver());
+		Thread helloRecv = new Thread(new HelloReceiver());
+		Thread replyRecv = new Thread(new ReplyReceiver());
+		Thread detectRecv = new Thread(new DetectReceiver());
 
-		hrt.start();
-		rrt.start();
+		helloRecv.start();
+		replyRecv.start();
+		detectRecv.start();
 	}
 
 	public static RtMgr getInstance() {

@@ -62,7 +62,7 @@ public class Configuration extends SysInfo {
 		//起线程定时查询，直到groupCtl被赋值再cancel
 		detectTask = new DetectTask();
 		detectTimer = new Timer();
-		detectTimer.schedule(detectTask, 0, detectPeriod);
+		detectTimer.schedule(detectTask, detectPeriod, detectPeriod);
 
 		//开始配置，获得当前控制器连接的所有switch和host，以及其中对外连接的port
 		localSwitch = WsnGlobleUtil.getLinkedSwtId(hostMac);
@@ -72,7 +72,7 @@ public class Configuration extends SysInfo {
 		//这里先假设一个集群只有一个交换机
 		for (String port : outPorts.keySet()) {
 			//这里是“向外的端口进消息，wsn收消息”的流表
-			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, port, wsn2swt,
+			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, port, portWsn2Swt,
 					WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
 			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
 			FlowHandler.downFlow(localCtl, flow, "update");
@@ -93,13 +93,13 @@ public class Configuration extends SysInfo {
 	private static class DetectTask extends TimerTask {
 		@Override
 		public void run() {
-			if (localSwitch != null && wsn2swt != null) {
+			if (localSwitch != null && portWsn2Swt != null) {
 				if (groupCtl != null) {
 					detectTask.cancel();
 					detectTimer.cancel();
 				}
 				//生成一条flood流表，用来向周围请求groupController信息
-				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, wsn2swt, "flood",
+				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, "flood",
 						WsnGlobleUtil.getSysTopicMap().get("groupCtl"), 0, 1);
 				FlowHandler.downFlow(localCtl, flow, "update");
 

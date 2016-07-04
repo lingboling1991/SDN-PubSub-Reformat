@@ -128,7 +128,7 @@ public class WsnGlobleUtil extends SysInfo {
 					for (String p : ps) {
 						if (p.contains("openflow")) {
 							String[] qs = p.split(":");
-							wsn2swt = qs[2];
+							portWsn2Swt = qs[2];
 							return qs[1];
 						}
 					}
