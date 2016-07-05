@@ -13,7 +13,7 @@ public class RtMgr extends SysInfo {
 	private DtMgr dt;//集群内检测模块
 
 	private RtMgr() {
-		dt = new DtMgr(this);
+		dt = new DtMgr();
 		dt.startSendTask();//这里只管发送，流表在configure()时已经下发了
 
 		Thread helloRecv = new Thread(new HelloReceiver());

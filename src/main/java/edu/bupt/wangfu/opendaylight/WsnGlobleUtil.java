@@ -102,13 +102,13 @@ public class WsnGlobleUtil extends SysInfo {
 		for (Port old : outPorts.values()) {
 			if (!tmp.values().contains(old)) {
 				neighbors.remove(old.getPort());//旧的对外端口不存在了，那么这个口对应的邻居也就不存在了
+				outPorts.remove(old.getPort());
+				tmp.remove(old.getPort());
 				//TODO 这里需要把原来的out-->wsn流表删掉吗？
-//				FlowHandler.deleteFlow(localAddr,)
 			}
 		}
 
-		outPorts.clear();
-		outPorts = tmp;
+		outPorts.putAll(tmp);
 	}
 
 	public static String getLinkedSwtId(String wsnMac) {

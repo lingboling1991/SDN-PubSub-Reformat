@@ -52,6 +52,7 @@ public class Configuration extends SysInfo {
 		lsdb = new ConcurrentHashMap<>();
 		localCtl = new Controller(localAddr);
 		groupCtl = null;
+		outPorts = new ConcurrentHashMap<>();
 
 		//TODO 向谁获知控制器地址，因为要从controlllers里选集群控制器
 		//向周围广播，请求本集群代表，然后向主控制器所在主机注册，节点自己维护controllers

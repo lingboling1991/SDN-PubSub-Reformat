@@ -2,7 +2,6 @@ package edu.bupt.wangfu.mgr.topology;
 
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
-import edu.bupt.wangfu.mgr.base.RtMgr;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
@@ -19,15 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by lenovo on 2016-6-22.
  */
 public class DtMgr extends SysInfo {
-	private RtMgr rtMgr;
-
-
 	private SendTask sendTask; //发送hello消息的计时器
-
 	private Timer helloTimer; //hello消息的计时器
 
-	public DtMgr(RtMgr rtMgr) {
-		this.rtMgr = rtMgr;
+	public DtMgr() {
 		neighbors = new ConcurrentHashMap<>();
 
 		//TODO 这里可以变成从管理员读取，那么就需要向管理员请求信息
