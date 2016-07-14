@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class FlowHandler extends SysInfo {
 	private static FlowHandler ins;
-	private int flowcount = 0;
+	private static int flowcount = 0;
 
 	private FlowHandler() {
 		this.flowcount = 0;
@@ -78,39 +78,11 @@ public class FlowHandler extends SysInfo {
 		return binIndex.toString();
 	}
 
-	public static boolean issueFlow(Controller controller, int tableNo, Flow flow) {
-		//TODO 流表发送地址还需确定
-		String url = controller.url;
-		String staticFlowPushUri = url + "/";
-		List<String> result = RestProcess.doClientPost(staticFlowPushUri, flow.getJsonContent());
-		return result.size() < 1 || result.get(0).equals("200");
-	}
-
 	public static String getDpid(Controller controller, String localAddr) {
 		//TODO 执行交换机状态查询功能的 地址 还需确定，返回wsn连接的交换机的dpid
 		String switchStatusUri = controller.url + "/";
 		return RestProcess.doClientGet(switchStatusUri);
 	}
-
-//	public static Flow generateFlow(Switch curSwitch, String curTopic, String targetPort) {
-//		String dpid = curSwitch.getDPID();
-//		HashMap<String, String> parms = new HashMap<>();
-//		parms.put("switch", dpid);
-//		parms.put("name", "flow-mod-");//为每个流表指定唯一的名称
-//		parms.put("cookie", "0");
-//		parms.put("priority", "32768");
-////		parms.put("ipv6_dst", topicName2multiV6Addr(curTopic, topicList, queueNo));//测试v6地址转化函数
-//		parms.put("active", "true");
-//
-//		parms.put("actions", "output=" + targetPort);
-//		parms.put("eth_type", "0x86dd");
-//
-//		Flow f = new Flow();
-//		JSONObject content = new JSONObject(parms);
-//		f.setJsonContent(content);
-//
-//		return f;
-//	}
 
 	public static boolean downFlows(Controller controller, List<Flow> flows, List<String> actions) {
 		boolean success = false;
@@ -140,6 +112,7 @@ public class FlowHandler extends SysInfo {
 
 	public Flow generateFlow(String swtId, String in, String out, String topic, int t_id, int pri) {
 		//swtId是switch在odl里的id，并不是mac或者dpid
+		flowcount++;
 		String table_id = String.valueOf(t_id);
 		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
 

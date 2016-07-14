@@ -71,7 +71,7 @@ public class Configuration extends SysInfo {
 		//针对switch向外的连接，下发流表（hello类的流表）
 		//这里先假设一个集群只有一个交换机
 		for (String port : outPorts.keySet()) {
-			//这里是“向外的端口进消息，wsn收消息”的流表
+			//这里是“对外的端口进消息，wsn收消息”的流表
 			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, port, portWsn2Swt,
 					WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
 			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
@@ -80,15 +80,18 @@ public class Configuration extends SysInfo {
 	}
 
 	private static void getGroupController() {
-		//TODO 这里是一跳
+		//这里是一跳，但应该已经满足需要了
 		MultiHandler handler = new MultiHandler(uPort, WsnGlobleUtil.getSysTopicMap().get("groupCtl"));
 		MsgDetectGroupCtl msg = new MsgDetectGroupCtl(groupName);
 		handler.v6Send(msg);
 
-		Object res = handler.v6Receive();//收到的第一个回复决定了这个集群的集群控制器是谁
+		//j这里会阻塞，没收到就一直挂起，直到到时间被GC；
+		//收到的第一个回复决定了这个集群的集群控制器是谁
+		Object res = handler.v6Receive();
 		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
 		if (mdgc_.groupName.equals(groupName)) {
 			groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
+			//TODO 这里需要加向groupCtl set-controller的过程
 		}
 	}
 

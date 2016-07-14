@@ -32,7 +32,7 @@ public class Hello_Receiver extends SysInfo implements Runnable {
 		if (groupName.equals(mh_.dstGroup) && outPorts.keySet().contains(mh_.dstPort)) {
 			//更新邻居信息
 			if (!neighbors.containsKey(mh_.dstPort)) {
-				GroupUnit groupUnit = new GroupUnit(mh_.srcGroup);
+				GroupUnit groupUnit = new GroupUnit(mh_.srcGroup, mh_.dstPort);
 				neighbors.put(mh_.dstPort, groupUnit);
 			}
 			//更新对外端口信息

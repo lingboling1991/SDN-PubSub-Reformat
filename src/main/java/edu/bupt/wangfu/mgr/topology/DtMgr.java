@@ -42,7 +42,7 @@ public class DtMgr extends SysInfo {
 			sendTask.cancel();
 		sendTask = new SendTask();
 		helloTimer = new Timer();
-		helloTimer.schedule(sendTask, sendPeriod, sendPeriod);
+		helloTimer.schedule(sendTask, 0, sendPeriod);
 	}
 
 	private void sendHello(String port) {
