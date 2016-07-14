@@ -10,8 +10,11 @@ public class GroupUnit implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public String name;
+	public String localPort;
+	public String remotePort;
 
-	public GroupUnit(String name) {
+	public GroupUnit(String name, String localPort) {
 		this.name = name;
+		this.localPort = localPort;
 	}
 }
