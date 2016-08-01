@@ -5,15 +5,14 @@ import java.io.Serializable;
 /**
  * Created by lenovo on 2016-6-22.
  */
-public class GroupUnit implements Serializable {
+public class Broker implements Serializable {
 	//集群单元
 	private static final long serialVersionUID = 1L;
 
 	public String name;
-	public String localPort;
-	public String remotePort;
+	public String localPort;//此节点连接的是我的哪个端口
 
-	public GroupUnit(String name, String localPort) {
+	public Broker(String name, String localPort) {
 		this.name = name;
 		this.localPort = localPort;
 	}

@@ -9,7 +9,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,21 +16,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by root on 15-10-6.
  */
 public class WsnGlobleUtil extends SysInfo {
-	private static WsnGlobleUtil INSTANCE = new WsnGlobleUtil();
-	private static ConcurrentHashMap<String, Controller> controllers = new ConcurrentHashMap<>();//集群内所有的控制器
-
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
 
-	private WsnGlobleUtil() {
-		hostSet = new HashSet<>();
-		switchSet = new HashSet<>();
-	}
-
-
-	public static WsnGlobleUtil getInstance() {
-		return INSTANCE;
-	}
+	private static ConcurrentHashMap<String, Controller> controllers = new ConcurrentHashMap<>();//集群内所有的控制器
 
 	public static void main(String[] args) {
 		Controller ctl = new Controller("10.108.164.240:8181");

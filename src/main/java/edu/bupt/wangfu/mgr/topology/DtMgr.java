@@ -45,10 +45,9 @@ public class DtMgr extends SysInfo {
 		helloTimer.schedule(sendTask, 0, sendPeriod);
 	}
 
-	private void sendHello(String port) {
+	private void sendHello(String port, String topic) {
 		MsgHello hello = new MsgHello();
-		String addr = WsnGlobleUtil.getSysTopicMap().get("hello");
-		MultiHandler handler = new MultiHandler(uPort, addr);
+		MultiHandler handler = new MultiHandler(uPort, topic);
 
 		hello.indicator = localAddr;
 		hello.helloInterval = sendPeriod;
@@ -65,14 +64,14 @@ public class DtMgr extends SysInfo {
 		public void run() {
 			WsnGlobleUtil.initGroup(localSwitch);//更新switchSet，outPorts
 
-			for (String port : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
-				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, port,
-						WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
-				FlowHandler.downFlow(localCtl, flow, "add");
+			for (String out : outPorts.keySet()) {//定时执行时outPorts内容可能每次都不同
+				String topic = WsnGlobleUtil.getSysTopicMap().get("hello");
+				Flow outFlow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, out, topic, 0, 1);
+				FlowHandler.downFlow(localCtl, outFlow, "add");
 
-				sendHello(port);
+				sendHello(out, topic);
 
-				FlowHandler.deleteFlow(localCtl, flow);//这里不删的话，后面就会在匹配的时候混乱
+				FlowHandler.deleteFlow(localCtl, outFlow);//这里不删的话，后面就会在匹配的时候混乱
 			}
 		}
 	}

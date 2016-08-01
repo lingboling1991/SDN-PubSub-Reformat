@@ -12,5 +12,5 @@ public class MsgHello_ implements Serializable {
 	public String srcSwitch;//发送者连接的交换机odl_id
 
 	public String dstPort;//目的节点使用的对外port
-	public String dstGroup;//目的节点所在的集群
+	public String dstGroup;//目的节点所在的集群，也就是我这里的集群名
 }

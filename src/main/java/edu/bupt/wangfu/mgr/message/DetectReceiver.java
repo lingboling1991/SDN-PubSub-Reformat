@@ -10,21 +10,21 @@ import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
  * Created by lenovo on 2016-6-23.
  */
 public class DetectReceiver extends SysInfo implements Runnable {
-	private MultiHandler multiHandler;
+	private MultiHandler handler;
 
 	public DetectReceiver() {
-		String v6addr = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
-		multiHandler = new MultiHandler(uPort, v6addr);
+		String topic = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
+		handler = new MultiHandler(uPort, topic);
 	}
 
 	@Override
 	public void run() {
 		while (true) {
-			Object msg = multiHandler.v6Receive();
+			Object msg = handler.v6Receive();
 			MsgDetectGroupCtl mdgc = (MsgDetectGroupCtl) msg;
 			if (mdgc.indicator.equals(groupName) && groupCtl != null) {
 				MsgDetectGroupCtl_ mdgc_ = new MsgDetectGroupCtl_(groupName, groupCtl);
-				multiHandler.v6Send(mdgc_);
+				handler.v6Send(mdgc_);
 			}
 		}
 	}

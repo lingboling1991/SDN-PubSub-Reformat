@@ -1,6 +1,6 @@
 package edu.bupt.wangfu;
 
-import edu.bupt.wangfu.mgr.base.Configuration;
+import edu.bupt.wangfu.mgr.base.Config;
 import edu.bupt.wangfu.mgr.base.RtMgr;
 
 /**
@@ -9,7 +9,7 @@ import edu.bupt.wangfu.mgr.base.RtMgr;
 public class Start {
 	public static void main(String[] args) {
 		System.out.println("config start");
-		Configuration.configure();//这里进行配置，配置文件的内容写到SysInfo里
+		Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
 		System.out.println("config done");
 
 		System.out.println("mgr thread start");

@@ -12,38 +12,43 @@ import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
  * Created by lenovo on 2016-6-23.
  */
 public class HelloReceiver extends SysInfo implements Runnable {
-	private MultiHandler multiHandler;
+	private MultiHandler handler;
 
 	public HelloReceiver() {
-		String v6addr = WsnGlobleUtil.getSysTopicMap().get("hello");
-		multiHandler = new MultiHandler(uPort, v6addr);
+		String topic = WsnGlobleUtil.getSysTopicMap().get("hello");
+		//这里先假设一个集群只有一个交换机
+		for (String out : outPorts.keySet()) {
+			Flow inFlow = FlowHandler.getInstance().generateFlow(localSwitch, out, portWsn2Swt, topic, 0, 1);
+			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
+			FlowHandler.downFlow(localCtl, inFlow, "update");
+		}
+		handler = new MultiHandler(uPort, topic);
 	}
 
 	@Override
 	public void run() {
 		while (true) {
-			Object msg = multiHandler.v6Receive();
+			Object msg = handler.v6Receive();
 			MsgHello mh = (MsgHello) msg;
 			onHello(mh);
 		}
 	}
 
-	public void onHello(MsgHello mh) {
-		for (String port : outPorts.keySet()) {
-			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, port,
-					WsnGlobleUtil.getSysTopicMap().get("hello_"), 0, 1);
-			FlowHandler.downFlow(localCtl, flow, "update");
+	public void onHello(MsgHello mh) {//收到Hello消息，给予回复，回复类型为Hello_
+		for (String out : outPorts.keySet()) {
+			String topic = WsnGlobleUtil.getSysTopicMap().get("hello_");
+			Flow outFlow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, out, topic, 0, 1);
+			FlowHandler.downFlow(localCtl, outFlow, "update");
 
-			replyHello(mh);
+			replyHello(mh, topic);
 
-			FlowHandler.deleteFlow(localCtl, flow);
+			FlowHandler.deleteFlow(localCtl, outFlow);
 		}
 	}
 
-	private void replyHello(MsgHello mh) {
+	private void replyHello(MsgHello mh, String topic) {
 		MsgHello_ reply = new MsgHello_();
-		String addr = WsnGlobleUtil.getSysTopicMap().get("hello_");
-		MultiHandler handler = new MultiHandler(uPort, addr);
+		MultiHandler handler = new MultiHandler(uPort, topic);
 
 		reply.srcSwitch = localSwitch;
 		reply.srcGroup = groupName;

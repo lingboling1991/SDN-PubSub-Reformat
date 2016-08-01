@@ -107,6 +107,7 @@ public class FlowHandler extends SysInfo {
 
 	public static boolean downFlow(Controller controller, Flow flow, String action) {
 		//TODO 这里还要考虑下发到具体哪个流表里，看要执行的动作是 更新流表项 还是 添加新流表项
+		// action == "add" "update"
 		return RestProcess.doClientPost(controller.url, flow.getJsonContent()).get(0).equals("200");
 	}
 

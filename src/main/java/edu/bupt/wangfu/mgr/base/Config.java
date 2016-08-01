@@ -18,12 +18,16 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by lenovo on 2016-6-22.
  */
-public class Configuration extends SysInfo {
+public class Config extends SysInfo {
 	private static DetectTask detectTask; //广播获取groupCtl消息的计时器
 	private static Timer detectTimer; //广播获取groupCtl消息的计时器
 	private static int count = 0;
 
 	public static void configure() {
+		WsnGlobleUtil.initSysTopicMap();
+		//TODO 这里还得把ldap的入口搞好
+//		WsnGlobleUtil.initNotifyTopicList();
+
 		Properties props = new Properties();
 		String propertiesPath = "RtConfig.properties";
 		try {
@@ -59,7 +63,16 @@ public class Configuration extends SysInfo {
 		Host node = new Host(localAddr);
 		String hostMac = node.getMac();
 
-		//起线程定时查询，直到groupCtl被赋值再cancel
+		//起线程定时查询groupCtl，直到groupCtl被赋值，再cancel这个TimerTask
+		String topic = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
+		Flow floodOutFlow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, "flood", topic, 0, 1);
+		FlowHandler.downFlow(localCtl, floodOutFlow, "update");
+
+		for (String out : outPorts.keySet()) {
+			Flow inFlow = FlowHandler.getInstance().generateFlow(localSwitch, out, portWsn2Swt, topic, 0, 1);
+			FlowHandler.downFlow(localCtl, inFlow, "add");
+		}
+
 		detectTask = new DetectTask();
 		detectTimer = new Timer();
 		detectTimer.schedule(detectTask, detectPeriod, detectPeriod);
@@ -67,31 +80,22 @@ public class Configuration extends SysInfo {
 		//开始配置，获得当前控制器连接的所有switch和host，以及其中对外连接的port
 		localSwitch = WsnGlobleUtil.getLinkedSwtId(hostMac);
 		WsnGlobleUtil.initGroup(localSwitch);//初始化了outPorts, hostSet, switchSet
-
-		//针对switch向外的连接，下发流表（hello类的流表）
-		//这里先假设一个集群只有一个交换机
-		for (String port : outPorts.keySet()) {
-			//这里是“对外的端口进消息，wsn收消息”的流表
-			Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, port, portWsn2Swt,
-					WsnGlobleUtil.getSysTopicMap().get("hello"), 0, 1);
-			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
-			FlowHandler.downFlow(localCtl, flow, "update");
-		}
 	}
 
-	private static void getGroupController() {
+	private static void getGroupCtl() {
 		//这里是一跳，但应该已经满足需要了
-		MultiHandler handler = new MultiHandler(uPort, WsnGlobleUtil.getSysTopicMap().get("groupCtl"));
+		String topic = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
+		MultiHandler handler = new MultiHandler(uPort, topic);
 		MsgDetectGroupCtl msg = new MsgDetectGroupCtl(groupName);
+
 		handler.v6Send(msg);
 
-		//j这里会阻塞，没收到就一直挂起，直到到时间被GC；
-		//收到的第一个回复决定了这个集群的集群控制器是谁
+		//j这里会阻塞，没收到就一直挂起，直到到时间被GC;收到的第一个回复决定了这个集群的集群控制器是谁
 		Object res = handler.v6Receive();
 		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
-		if (mdgc_.groupName.equals(groupName)) {
+		if (mdgc_.groupName.equals(groupName)) {//因为是广播出去的，所以要确定一下这条信息是否自己的集群伙伴
 			groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
-			//TODO 这里需要加向groupCtl set-controller的过程
+			//TODO 这里需要加向groupCtl设置set-controller的过程
 		}
 	}
 
@@ -109,13 +113,7 @@ public class Configuration extends SysInfo {
 					detectTask.cancel();
 					detectTimer.cancel();
 				}
-
-				//生成一条flood流表，用来向周围请求groupController信息
-				Flow flow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, "flood",
-						WsnGlobleUtil.getSysTopicMap().get("groupCtl"), 0, 1);
-				FlowHandler.downFlow(localCtl, flow, "update");
-
-				getGroupController();
+				getGroupCtl();
 			}
 		}
 	}
