@@ -1,6 +1,6 @@
 package edu.bupt.wangfu.info.ldap;
 
-import edu.bupt.wangfu.info.msg.ldap.WsnPolicyMsg;
+import edu.bupt.wangfu.info.ldap.wsnPolicy.WsnPolicyMsg;
 import org.w3c.dom.Document;
 
 /**

@@ -36,7 +36,7 @@ public class Hello_Receiver extends SysInfo implements Runnable {
 	private void onReply(MsgHello_ mh_) {
 		//这条消息是针对 本集群groupName 的 对外端口dstPort 的回复
 		//TODO 这里有个问题，可能不可能一个集群中有两个交换机，暴露了同样的对外端口，所以每个交换机应该有唯一标识，这样就不存在集群这个概念了
-		if (groupName.equals(mh_.dstGroup) && outPorts.keySet().contains(mh_.dstPort)) {
+		if (groupName.equals(mh_.dstGroup) && outPorts.containsKey(mh_.dstPort)) {
 			//更新邻居信息
 			if (!neighbors.containsKey(mh_.dstPort)) {
 				Broker broker = new Broker(mh_.srcGroup, mh_.dstPort);

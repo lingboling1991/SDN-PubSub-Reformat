@@ -24,6 +24,7 @@ public class Config extends SysInfo {
 	private static int count = 0;
 
 	public static void configure() {
+		//初始化topic和对应的编码
 		WsnGlobleUtil.initSysTopicMap();
 		//TODO 这里还得把ldap的入口搞好
 //		WsnGlobleUtil.initNotifyTopicList();
@@ -90,7 +91,7 @@ public class Config extends SysInfo {
 
 		handler.v6Send(msg);
 
-		//j这里会阻塞，没收到就一直挂起，直到到时间被GC;收到的第一个回复决定了这个集群的集群控制器是谁
+		//这里会阻塞，没收到就一直挂起，直到到时间被GC;收到的第一个回复决定了这个集群的集群控制器是谁
 		Object res = handler.v6Receive();
 		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
 		if (mdgc_.groupName.equals(groupName)) {//因为是广播出去的，所以要确定一下这条信息是否自己的集群伙伴
