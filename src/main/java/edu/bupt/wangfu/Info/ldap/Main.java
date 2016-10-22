@@ -146,10 +146,10 @@ public class Main {
 //		      attrs.put("ou", "TopicEntry");
 //		      attrs.put("ou", "test_topic");
 //		      BasicAttribute objectclassSet = new BasicAttribute("objectclass");
-//		      objectclassSet.add("top");
-//		      objectclassSet.add("organizationalUnit");
-//		      objectclassSet.add("javaClassName");
-//		      objectclassSet.add("TopicEntry");
+//		      objectclassSet.Add("top");
+//		      objectclassSet.Add("organizationalUnit");
+//		      objectclassSet.Add("javaClassName");
+//		      objectclassSet.Add("TopicEntry");
 //		      attrs.put(objectclassSet);
 //		      attrs.put("javaClassName", fruit.getClass().getName());
 //		      
@@ -186,9 +186,9 @@ public class Main {
 ////	      attrs.put("ou", "TopicEntry");
 ////	      attrs.put("ou", "test_topic");
 //	      BasicAttribute objectclassSet = new BasicAttribute("objectclass");
-//	      objectclassSet.add("top");
-//	      objectclassSet.add("organizationalUnit");
-////	      objectclassSet.add("javaCodebase");
+//	      objectclassSet.Add("top");
+//	      objectclassSet.Add("organizationalUnit");
+////	      objectclassSet.Add("javaCodebase");
 //	      attrs.put(objectclassSet);
 //	      attrs.put("javaCodebase", "http://com.shmily.main/classes");
 		// Perform bind

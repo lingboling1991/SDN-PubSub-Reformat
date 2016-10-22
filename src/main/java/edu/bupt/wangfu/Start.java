@@ -1,24 +1,28 @@
 package edu.bupt.wangfu;
 
 import edu.bupt.wangfu.mgr.base.Config;
-import edu.bupt.wangfu.mgr.base.RtMgr;
+import edu.bupt.wangfu.mgr.base.WsnMgr;
+import edu.bupt.wangfu.mgr.topology.GroupMgr;
 
 /**
  * Created by LCW on 2016-6-19.
  */
 public class Start {
 	public static void main(String[] args) {
-		System.out.println("config start");
-		Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
-		System.out.println("config done");
+		try {
+			Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
+			GroupMgr.initGroup();//初始化本地关于集群的hostMap，switchMap还有outPorts
 
-		System.out.println("mgr thread start");
-		new Thread(new mgrInstance()).start();
+			new Thread(new mgrInstance()).start();
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static class mgrInstance implements Runnable {
 		public void run() {
-			RtMgr.getInstance();
+			WsnMgr.getInstance();
 		}
 	}
 }

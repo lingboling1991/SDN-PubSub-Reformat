@@ -61,13 +61,4 @@ public class Flow {
 
 		this.xmlContent = xmlContent;
 	}
-
-//	public String getFlowCount() {
-//		return flowCount;
-//	}
-//
-//	public void setFlowCount(String flowCount) {
-//		Flow.flowCount = flowCount;
-//	}
-
 }

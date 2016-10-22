@@ -7,16 +7,15 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class DevInfo {
+	public String mac;
+	public int distance;//计算最小连通图要用，默认1跳是1
 	private String url;
-	private String mac;
-	private String port;
 	private String errorStatus;
 	private String lastSeen;
 	private String remark;
-	private Map<String, Switch> switchs;
 	private Map<Switch, List<Switch>> topology;
 	//key是端口号，value是设备
-	private Map<Integer, DevInfo> wsnDevMap = new ConcurrentHashMap<>();
+	private Map<String, DevInfo> neighbors = new ConcurrentHashMap<>();
 
 	public Map<Switch, List<Switch>> getRuntimeTopology() {
 //		RestProcess.downRuntimeTopology();
@@ -29,14 +28,6 @@ public class DevInfo {
 
 	public void setTopology(Map<Switch, List<Switch>> topology) {
 		this.topology = topology;
-	}
-
-	public Map<String, Switch> getSwitchs() {
-		return switchs;
-	}
-
-	public void setSwitchs(Map<String, Switch> switchs) {
-		this.switchs = switchs;
 	}
 
 	public String getUrl() {
@@ -53,14 +44,6 @@ public class DevInfo {
 
 	public void setMac(String mac) {
 		this.mac = mac;
-	}
-
-	public String getPort() {
-		return port;
-	}
-
-	public void setPort(String port) {
-		this.port = port;//这里的port在WsnHost中，表示host与switch连接中switch开放的端口
 	}
 
 	public String getErrorStatus() {
@@ -80,12 +63,16 @@ public class DevInfo {
 		this.lastSeen = lastSeen;
 	}
 
-	public Map<Integer, DevInfo> getWsnDevMap() {
-		return wsnDevMap;
+	public Map<String, DevInfo> getNeighbors() {
+		return neighbors;
 	}
 
-	public void setWsnDevMap(Map<Integer, DevInfo> wsnDevMap) {
-		this.wsnDevMap = wsnDevMap;
+	public void setNeighbors(Map<String, DevInfo> neighbors) {
+		this.neighbors = neighbors;
+	}
+
+	public void addNeighbor(String port, DevInfo dev) {
+		this.neighbors.put(port, dev);
 	}
 
 	public String getRemark() {

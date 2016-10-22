@@ -1,7 +1,7 @@
 package edu.bupt.wangfu.info.ldap;
 
 
-import edu.bupt.wangfu.info.msg.ldap.ComplexGroup;
+import edu.bupt.wangfu.info.ldap.wsnPolicy.ComplexGroup;
 
 import javax.naming.Context;
 import javax.naming.NameClassPair;

@@ -94,23 +94,25 @@ public class FlowHandler extends SysInfo {
 	}
 
 	public static boolean deleteFlow(Controller controller, String table_id, String flow_id) {
-		String url = controller.url + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwitch
+		String url = controller.url + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwtId
 				+ "/table/" + table_id + "/flow/" + flow_id;
 		return RestProcess.doClientDelete(url).equals("200");
 	}
 
 	public static boolean deleteFlow(Controller controller, Flow flow) {
-		String url = controller.url + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwitch
+		String url = controller.url + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwtId
 				+ "/table/" + flow.getTable_id() + "/flow/" + flow.getFlow_id();
 		return RestProcess.doClientDelete(url).equals("200");
 	}
 
 	public static boolean downFlow(Controller controller, Flow flow, String action) {
 		//TODO 这里还要考虑下发到具体哪个流表里，看要执行的动作是 更新流表项 还是 添加新流表项
-		// action == "add" "update"
+		// action == "Add" "update"
 		return RestProcess.doClientPost(controller.url, flow.getJsonContent()).get(0).equals("200");
 	}
 
+	//TODO 生成函数找韩波
+	//这里使用单例模式是为了方便计数flowcount，每条流表的编号必须不一样
 	public Flow generateFlow(String swtId, String in, String out, String topic, int t_id, int pri) {
 		//swtId是switch在odl里的id，并不是mac或者dpid
 		flowcount++;

@@ -17,8 +17,8 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	public HelloReceiver() {
 		String topic = WsnGlobleUtil.getSysTopicMap().get("hello");
 		//这里先假设一个集群只有一个交换机
-		for (String out : outPorts.keySet()) {
-			Flow inFlow = FlowHandler.getInstance().generateFlow(localSwitch, out, portWsn2Swt, topic, 0, 1);
+		for (String out : outSwtMap.keySet()) {
+			Flow inFlow = FlowHandler.getInstance().generateFlow(localSwtId, out, portWsn2Swt, topic, 0, 1);
 			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
 			FlowHandler.downFlow(localCtl, inFlow, "update");
 		}
@@ -35,9 +35,9 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	}
 
 	public void onHello(MsgHello mh) {//收到Hello消息，给予回复，回复类型为Hello_
-		for (String out : outPorts.keySet()) {
+		for (String out : outSwtMap.keySet()) {
 			String topic = WsnGlobleUtil.getSysTopicMap().get("hello_");
-			Flow outFlow = FlowHandler.getInstance().generateFlow(localSwitch, portWsn2Swt, out, topic, 0, 1);
+			Flow outFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, out, topic, 0, 1);
 			FlowHandler.downFlow(localCtl, outFlow, "update");
 
 			replyHello(mh, topic);
@@ -50,7 +50,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 		MsgHello_ reply = new MsgHello_();
 		MultiHandler handler = new MultiHandler(uPort, topic);
 
-		reply.srcSwitch = localSwitch;
+		reply.srcSwitch = localSwtId;
 		reply.srcGroup = groupName;
 
 		reply.dstPort = mh.srcPort;

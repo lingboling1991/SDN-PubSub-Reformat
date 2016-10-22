@@ -4,17 +4,17 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by root on 15-10-5.
  */
 public class Host extends DevInfo {
-	private String ip;
-	private String mac = null;
-	private Map<String, List<String>> subers = new ConcurrentHashMap<>();
+	public String ip;
+	public Switch swt;
+//	public Map<String, List<String>> subers = new ConcurrentHashMap<>();
+
+	public Host() {
+	}
 
 	public Host(String ip) {
 		this.ip = ip;

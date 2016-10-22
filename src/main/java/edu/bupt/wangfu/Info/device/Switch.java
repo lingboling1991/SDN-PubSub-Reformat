@@ -1,39 +1,22 @@
 package edu.bupt.wangfu.info.device;
 
 
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  * Created by root on 15-7-14.
  */
 public class Switch extends DevInfo {
-
-
-	private String DPID;
+	public HashSet<String> portSet;//经过initGroup()，剩下的端口就是outPorts；在普通节点里，portSet存的是所有激活的端口
+	public String id;
+	public HashMap<String, Host> hosts;
 	private String ipAddr;
-
 	private double load;
-	private Map<Integer, Integer> portList;
-
 	private List<Flow> flows;
-
-	//devices connected to each port of the switch
-	private Map<Integer, DevInfo> wsnHostMap = new ConcurrentHashMap<>();
 	private Map<Integer, List<Queue>> queues;//一个端口有多个队列
 
-	public Switch(String DPID) {
-		this.DPID = DPID;
-	}
-
-	public String getDPID() {
-		return DPID;
-	}
-
-	public void setDPID(String DPID) {
-		this.DPID = DPID;
+	public Switch(String id) {
+		this.id = id;
 	}
 
 	public String getIpAddr() {
@@ -50,14 +33,6 @@ public class Switch extends DevInfo {
 
 	public void setQueues(Map<Integer, List<Queue>> queues) {
 		this.queues = queues;
-	}
-
-	public Map<Integer, Integer> getPortList() {
-		return portList;
-	}
-
-	public void setPortList(Map<Integer, Integer> portList) {
-		this.portList = portList;
 	}
 
 	public double getLoad() {

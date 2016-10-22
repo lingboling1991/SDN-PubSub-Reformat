@@ -2,8 +2,9 @@ package edu.bupt.wangfu.opendaylight;
 
 
 import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.device.Port;
 import edu.bupt.wangfu.info.ldap.WSNTopicObject;
+import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl;
+import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl_;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -19,14 +20,10 @@ public class WsnGlobleUtil extends SysInfo {
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
 
-	private static ConcurrentHashMap<String, Controller> controllers = new ConcurrentHashMap<>();//集群内所有的控制器
-
 	public static void main(String[] args) {
-		Controller ctl = new Controller("10.108.164.240:8181");
-//		WsnGlobleUtil.getInstance().initGroup(ctl, "52:54:00:b4:46:51");
+		Controller ctl = new Controller("10.108.165.188:8181");
 		String x = "openflow:117169754616649";
 		System.out.println(x.substring(9, x.length() - 1));
-
 	}
 
 	public static void initNotifyTopicList(WSNTopicObject topicTree) {
@@ -49,59 +46,10 @@ public class WsnGlobleUtil extends SysInfo {
 		return notifyTopicList;
 	}
 
-	public static void initGroup(String swtId) {
-		String url = localCtl.url + "/restconf/operational/network-topology:network-topology/";
-		String body = RestProcess.doClientGet(url);
-		JSONObject json = new JSONObject(body);
-		JSONObject net_topology = json.getJSONObject("network-topology");
-		JSONArray topology = net_topology.getJSONArray("topology");
-
-		for (int i = 0; i < topology.length(); i++) {
-			JSONArray nodes = topology.getJSONObject(i).getJSONArray("node");
-			for (int j = 0; j < nodes.length(); j++) {
-				String node_id = nodes.getJSONObject(j).getString("node-id");
-				if (node_id.contains("host")) {
-					hostSet.add(node_id.substring(5, node_id.length()));
-				} else if (node_id.contains("openflow")) {
-					switchSet.add(node_id.substring(9, node_id.length()));
-				}
-			}
-		}
-
-		ConcurrentHashMap<String, Port> tmp = new ConcurrentHashMap<>();
-
-		for (int i = 0; i < topology.length(); i++) {
-			JSONArray link = topology.getJSONObject(i).getJSONArray("link");
-			for (int j = 0; j < link.length(); j++) {
-				String link_id = link.getJSONObject(j).getString("link-id");
-				String[] link_id_info = link_id.split(":");
-				if (link_id.contains(swtId) && !link_id.contains("/")) {//<link-id>openflow:117169754616649:1</link-id>
-					//TODO 究竟条目长什么样子还需要再看。可以是node中所有端口，减去link中一部分端口
-					//这个连接左边是特定交换机，右边也是一个交换机
-					String[] dest_info = link.getJSONObject(j).getJSONObject("destination").getString("dest-tp").split(":");
-					if (!switchSet.contains(dest_info[1])) {
-						//右边的交换机不在这个controller控制下，则左边交换机开的端口就是对外端口
-						tmp.put(link_id_info[2], new Port(link_id_info[2]));
-					}
-				}
-			}
-		}
-
-		for (Port old : outPorts.values()) {
-			if (!tmp.values().contains(old)) {
-				neighbors.remove(old.getPort());//旧的对外端口不存在了，那么这个口对应的邻居也就不存在了
-				outPorts.remove(old.getPort());
-				tmp.remove(old.getPort());
-				//TODO 这里需要把原来的out-->wsn流表删掉吗？
-			}
-		}
-
-		outPorts.putAll(tmp);
-	}
-
+	//TODO 需要验证
 	public static String getLinkedSwtId(String wsnMac) {
 		//返回wsn程序所在主机所连Switch的odl_id
-		String url = localCtl.url + "/restconf/operational/network-topology:network-topology/";
+		String url = groupCtl.url + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
 		JSONObject net_topology = json.getJSONObject("network-topology");
@@ -126,10 +74,28 @@ public class WsnGlobleUtil extends SysInfo {
 		return null;
 	}
 
-	public String[] splitString(String source_port) {
+	private static void getGroupCtl() {
+		//这里是一跳，但应该已经满足需要了
+		String topic = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
+		MultiHandler handler = new MultiHandler(uPort, topic);
+		MsgDetectGroupCtl msg = new MsgDetectGroupCtl(groupName);
+
+		handler.v6Send(msg);
+
+		//这里会阻塞，没收到就一直挂起，直到到时间被GC;收到的第一个回复决定了这个集群的集群控制器是谁
+		Object res = handler.v6Receive();
+		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
+		if (mdgc_.groupName.equals(groupName)) {//因为是广播出去的，所以要确定一下这条信息是否自己的集群伙伴
+			groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
+		}
+	}
+
+	/*public String[] splitString(String source_port) {
 		String[] str;
 		str = source_port.split(":");
 		for (String aStr : str) System.out.println(aStr);
 		return str;
-	}
+	}*/
+
+
 }
