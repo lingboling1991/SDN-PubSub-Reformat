@@ -5,8 +5,10 @@ import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Host;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.subscribtion.SubMgr;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.RestProcess;
+import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -32,8 +34,9 @@ public class GroupMgr extends SysInfo {
 			Thread.sleep(100);
 
 		//下发访问groupCtl的flood流表
-		if (localCtl.equals(groupCtl)) downRepFlow();
-		else downRegFlow();
+		if (localCtl.equals(groupCtl)) {
+			downRepFlow();
+		} else downRegFlow();
 	}
 
 	//初始化hostMap，switchMap，outSwtMap
@@ -82,6 +85,7 @@ public class GroupMgr extends SysInfo {
 				String dest = links.getJSONObject(j).getJSONObject("destination").getString("dest-tp");
 				String src = links.getJSONObject(j).getJSONObject("source").getString("source-tp");
 				String hostMac = null, swtId1, port1, swtId2 = null, port2 = null;
+				//获取连接关系
 				if (link_id.contains("host")) {
 					hostMac = dest.contains("host") ? dest.substring(5, dest.length()) : src.substring(5, src.length());
 					swtId1 = dest.contains("host") ? src.split(":")[1] : dest.split(":")[1];
@@ -92,15 +96,18 @@ public class GroupMgr extends SysInfo {
 					swtId2 = dest.split(":")[1];
 					port2 = dest.split(":")[2];
 				}
-				//TODO 清理portSet，让里面剩下的都是outPort
+				//修改连接关系
 				if (hostMac != null) {
 					Host h = hostMap.get(hostMac);
 					switchMap.get(swtId1).addNeighbor(port1, h);
+					switchMap.get(swtId1).portSet.remove(port1);
 				} else {
 					Switch s1 = switchMap.get(swtId1);
 					Switch s2 = switchMap.get(swtId2);
 					s1.addNeighbor(port1, s2);
+					s1.portSet.remove(port1);
 					s2.addNeighbor(port2, s1);
+					s2.portSet.remove(port2);
 				}
 			}
 		}
@@ -124,12 +131,13 @@ public class GroupMgr extends SysInfo {
 		for (Switch swt : switchMap.values()) {
 			String id = swt.id;
 			for (String p : swt.getNeighbors().keySet()) {
-				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "", 1, 10);//TODO 优先级是越大越靠后吗？
-//				fromGroupCtlFlow.setSrc(localAddr);
+				String sys = WsnGlobleUtil.getSysTopicMap().get("sys");
+				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", sys, 1, 10);//TODO 优先级是越大越靠后吗？
+//				TODO fromGroupCtlFlow.setV4Src(localAddr);
 				FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
 
-				Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "", 1, 10);
-//				toGroupCtlFlow.setDst(localAddr);
+				Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", sys, 1, 10);
+//				TODO toGroupCtlFlow.setV4Dst(localAddr);
 				FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
 			}
 		}
@@ -137,8 +145,9 @@ public class GroupMgr extends SysInfo {
 
 	//localCtl下发本地swt上flood流表
 	private static void downRegFlow() {
-		Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "", 1, 10);//TODO 优先级是越大越靠后吗？
-//		fromGroupCtlFlow.setDst(groupCtl.url);
+		String sys = WsnGlobleUtil.getSysTopicMap().get("sys");
+		Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", sys, 1, 10);//TODO 优先级是越大越靠后吗？
+//		TODO fromGroupCtlFlow.setV4Dst(groupCtl.url);
 		FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
 	}
 
@@ -147,6 +156,7 @@ public class GroupMgr extends SysInfo {
 		@Override
 		public void run() {
 			setMaps(groupCtl);
+			SubMgr.downSubPubFlow();
 		}
 	}
 }

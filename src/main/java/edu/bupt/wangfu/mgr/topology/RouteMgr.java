@@ -1,11 +1,9 @@
 package edu.bupt.wangfu.mgr.topology;
 
-import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.mgr.topology.graph.Node;
-import edu.bupt.wangfu.opendaylight.FlowHandler;
 
 import java.util.HashSet;
 

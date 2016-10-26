@@ -7,8 +7,8 @@ import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Timer;
 
@@ -29,10 +29,8 @@ public class Config extends SysInfo {
 
 		setParams();
 		Host node = new Host(localAddr);
-		String hostMac = node.getMac();
-		localSwtId = WsnGlobleUtil.getLinkedSwtId(hostMac);
-
-
+		localMac = node.getMac();
+		localSwtId = WsnGlobleUtil.getLinkedSwtId(localMac);
 	}
 
 	private static void setParams() {
@@ -60,7 +58,7 @@ public class Config extends SysInfo {
 //		neighbors = new ConcurrentHashMap<>();
 		hostMap = new HashMap<>();
 		switchMap = new HashMap<>();
-		subTable = new ArrayList<>();
+		subTable = new HashSet<>();
 		lsaSeqNum = 0;
 		lsdb = new HashMap<>();
 		localCtl = new Controller(localAddr);

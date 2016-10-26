@@ -2,6 +2,7 @@ package edu.bupt.wangfu.info.device;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,13 +10,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DevInfo {
 	public String mac;
 	public int distance;//计算最小连通图要用，默认1跳是1
+	public HashSet<String> subTopics = new HashSet<>();//订阅的主题编码
 	private String url;
 	private String errorStatus;
 	private String lastSeen;
 	private String remark;
 	private Map<Switch, List<Switch>> topology;
 	//key是端口号，value是设备
-	private Map<String, DevInfo> neighbors = new ConcurrentHashMap<>();
+	private Map<String, DevInfo> neighbors = new ConcurrentHashMap<>();//不包括跨集群的邻居
 
 	public Map<Switch, List<Switch>> getRuntimeTopology() {
 //		RestProcess.downRuntimeTopology();

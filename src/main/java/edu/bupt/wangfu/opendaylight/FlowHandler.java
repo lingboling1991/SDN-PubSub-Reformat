@@ -122,4 +122,15 @@ public class FlowHandler extends SysInfo {
 		Flow flow = new Flow();
 		return flow;
 	}
+
+	public Flow generateSubPubFlow(String swtId, String in, String out, String eventType, int t_id, int pri) {
+		//swtId是switch在odl里的id，并不是mac或者dpid
+		flowcount++;
+		String table_id = String.valueOf(t_id);
+		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
+		eventType = eventType + "";
+
+		Flow flow = new Flow();
+		return flow;
+	}
 }

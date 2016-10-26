@@ -104,7 +104,7 @@ public class Ldap {
 		return t;
 	}
 
-	//get the object in the sub level as a list
+	//get the object in the subscribtion level as a list
 	public List<TopicEntry> getSubLevel(TopicEntry t) {
 		List<TopicEntry> ls = new ArrayList<TopicEntry>();
 		String sub_path = null;

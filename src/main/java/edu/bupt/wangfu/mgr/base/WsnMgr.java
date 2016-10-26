@@ -7,7 +7,6 @@ import edu.bupt.wangfu.mgr.message.Hello_Receiver;
 import edu.bupt.wangfu.mgr.message.LSDBAnswer;
 import edu.bupt.wangfu.mgr.topology.HeartMgr;
 import edu.bupt.wangfu.mgr.topology.RouteMgr;
-import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.HashSet;
@@ -48,7 +47,7 @@ public class WsnMgr extends SysInfo {
 	private void downRepFlow() {
 		HashSet<Switch> swts = getGroupOutSwts();
 		for (Switch swt : swts) {
-			FlowHandler.getInstance().generateFlow();
+//			!!!FlowHandler.getInstance().generateFlow();
 		}
 	}
 
