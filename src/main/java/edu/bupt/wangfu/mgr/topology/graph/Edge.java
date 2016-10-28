@@ -2,7 +2,9 @@ package edu.bupt.wangfu.mgr.topology.graph;
 
 public class Edge implements Comparable {
 	private String start;
+	public String startPort;
 	private String finish;
+	public String finishPort;
 	private int value;
 
 	public Edge() {

@@ -5,7 +5,8 @@ import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Host;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.mgr.subscribtion.SubMgr;
+import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
+import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.RestProcess;
 import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
@@ -46,6 +47,7 @@ public class GroupMgr extends SysInfo {
 		//测试用
 		HashMap<String, Host> hostMap = new HashMap<>();
 		HashMap<String, Switch> switchMap = new HashMap<>();
+		HashSet<Edge> edges = new HashSet<>();
 		//结束
 
 		String body = RestProcess.doClientGet(url);
@@ -112,18 +114,27 @@ public class GroupMgr extends SysInfo {
 			}
 		}
 
-		System.out.println("test to see hostMap and switchMap");
+		for (int i = 0; i < topology.length(); i++) {
+			JSONArray links = topology.getJSONObject(i).getJSONArray("link");
+			for (int j = 0; j < links.length(); j++) {
+				String link_id = links.getJSONObject(j).getString("link-id");
+				if (!link_id.contains("host")) {//这说明这个连接是一个swt--swt的连接
+					Edge e = new Edge();
+					String[] s = links.getJSONObject(j).getJSONObject("destination").getString("dest-tp").split(":");
+					e.setStart(s[1]);
+					e.startPort = s[2];
 
-		//TODO 这里还有outPorts没有初始化
-		/*for (Switch old : outSwtMap.values()) {
-			if (!tmp.values().contains(old)) {
-				neighbors.remove(old.port);//旧的对外端口不存在了，那么这个口对应的邻居也就不存在了
-				outSwtMap.remove(old.getPort());
-				tmp.remove(old.getPort());
+					String[] f = links.getJSONObject(j).getJSONObject("source").getString("source-tp").split(":");
+					e.setFinish(f[1]);
+					e.finishPort = f[2];
+
+					edges.add(e);
+				}
 			}
 		}
 
-		outSwtMap.putAll(tmp);*/
+		System.out.println("test to see hostMap and switchMap");
+
 	}
 
 	//groupCtl下发全集群各swt上flood流表
@@ -156,7 +167,7 @@ public class GroupMgr extends SysInfo {
 		@Override
 		public void run() {
 			setMaps(groupCtl);
-			SubMgr.downSubPubFlow();
+			SubPubMgr.downSubPubFlow();
 		}
 	}
 }

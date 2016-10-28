@@ -33,7 +33,7 @@ public class WsnGlobleUtil extends SysInfo {
 	}
 
 	public static void initSysTopicMap() {
-		//TODO 把管理消息主题和对应的v6地址
+		//TODO 把管理消息主题和对应的v6地址，注意有sub,pub这种eventType不一样的
 		ConcurrentHashMap<String, String> res = new ConcurrentHashMap<>();
 		sysTopicMap = res;
 	}

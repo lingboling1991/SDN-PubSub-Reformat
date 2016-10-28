@@ -1,34 +1,19 @@
 package edu.bupt.wangfu.mgr.topology;
 
-import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.mgr.topology.graph.Edge;
-import edu.bupt.wangfu.mgr.topology.graph.Node;
 
-import java.util.HashSet;
-
-import static edu.bupt.wangfu.mgr.topology.graph.Kruskal.KRUSKAL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by LCW on 2016-7-16.
  */
 public class RouteMgr extends SysInfo {
-	public static void calAllTopicRoute() {
+	public static List<String> calHelloRoute(String endSwtId, String endPort) {
+		//TODO
+		String startSwtId = localSwtId;//因为只在groupCtl节点运行这个函数
 
-	}
-
-	public static void calOutPort2Wsn() {
-		for (Switch swt : outSwtMap.values()) {
-			if (swt.portSet.size() != 0) {
-				for (String port : swt.portSet) {
-//					Kruskal kruskal = new Kruskal();
-//					TODO HashSet<Node>
-					KRUSKAL(new HashSet<Node>(), new HashSet<Edge>());
-
-
-				}
-			}
-		}
+		return new ArrayList<>();
 	}
 
 }

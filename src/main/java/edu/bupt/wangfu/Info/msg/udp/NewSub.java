@@ -8,6 +8,7 @@ import java.io.Serializable;
 public class NewSub implements Serializable {
 	private static final long serialVersionUID = 1L;
 
+	public String group;
 	public String topic;
 	public String hostMac;
 	public String port;

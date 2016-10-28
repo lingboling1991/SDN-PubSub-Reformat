@@ -52,13 +52,14 @@ public class Config extends SysInfo {
 		tPort = Integer.valueOf(props.getProperty("tPort"));
 		uPort = Integer.valueOf(props.getProperty("uPort"));
 
-		long refreshPeriod = Long.parseLong(props.getProperty("refreshPeriod"));
+		refreshPeriod = Long.parseLong(props.getProperty("refreshPeriod"));
 
-//		groups = new ConcurrentHashMap<>();
+		edges = new HashSet<>();
 //		neighbors = new ConcurrentHashMap<>();
 		hostMap = new HashMap<>();
 		switchMap = new HashMap<>();
-		subTable = new HashSet<>();
+		localSubTopic = new HashSet<>();
+		groupSubMap = new HashMap<>();
 		lsaSeqNum = 0;
 		lsdb = new HashMap<>();
 		localCtl = new Controller(localAddr);

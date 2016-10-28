@@ -1,24 +1,51 @@
 package edu.bupt.wangfu.mgr.topology;
 
 import edu.bupt.wangfu.info.device.Flow;
+import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
  * Created by lenovo on 2016-6-22.
  */
+//只有localCtl == groupCtl时，才启动这个
 public class HeartMgr extends SysInfo {
 	private SendTask sendTask; //发送hello消息的计时器
 	private Timer helloTimer; //hello消息的计时器
 
 	public HeartMgr() {
-		/*neighbors = new ConcurrentHashMap<>();//TODO 这个可以在initGroup里面，把自己localSwitchid的邻居写进去
+		for (Switch swt : switchMap.values()) {
+			for (String port : swt.portSet) {
+				if (!port.equals("LOCAL")) {
+					//计算从groupCtl节点的wsn2swt到outPort的路径
+					List<String> route = RouteMgr.calHelloRoute(swt.id, port);
+					for (int i = 0; i < route.size() - 1; i++) {
+						Switch start = switchMap.get(route.get(i));
+						Switch finish = switchMap.get(route.get(i + 1));
+						String inPort = null, outPort = null;
+						inPort = i == 0 ? portWsn2Swt :;
+						for (Edge e : edges) {
+							if (e.getStart().equals(start) && e.getFinish().equals(finish)) {
+								outPort = e.startPort;
+							}
+						}
+
+						FlowHandler.getInstance().generateFlow(route.get(i), inPort, outPort, "detect", 1, 10);
+					}
+				}
+			}
+		}
 
 		//TODO 这里可以变成从管理员读取，那么就需要向管理员请求信息
 		Properties props = new Properties();
@@ -30,7 +57,7 @@ public class HeartMgr extends SysInfo {
 		}
 
 		threshold = Long.parseLong(props.getProperty("threshold"));//判断失效阀值
-		sendPeriod = Long.parseLong(props.getProperty("sendPeriod"));//发送周期*/
+		sendPeriod = Long.parseLong(props.getProperty("sendPeriod"));//发送周期
 	}
 
 	public void startSendTask() {

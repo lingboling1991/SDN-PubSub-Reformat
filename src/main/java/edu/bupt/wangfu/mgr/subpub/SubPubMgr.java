@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.mgr.subscribtion;
+package edu.bupt.wangfu.mgr.subpub;
 
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
@@ -8,34 +8,50 @@ import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Created by LCW on 2016-7-19.
  */
-public class SubMgr extends SysInfo {
-	//本地产生新订阅
+public class SubPubMgr extends SysInfo {
+	SubPubMgr() {
+		new Thread(new SubReceiver()).start();
+	}
+
+	//TODO 程序如何通知wsn本地产生新订阅
 	public static boolean subscribe(String suberAddr, String topic) {
 		String[] topicPath = topic.split(":");
-
 		//查看是否已订阅该主题的父主题
 		String cur = topicPath[0];
+
 		for (int i = 1; i < topicPath.length; i++) {
-			if (subTable.contains(cur)) return false;
-			else cur += ":" + topicPath[i];
+			if (localSubTopic.contains(cur))
+				return false;
+			else
+				cur += ":" + topicPath[i];
 		}
-		subTable.add(cur);
+		//更新本地订阅
+		localSubTopic.add(cur);
+		//更新本集群订阅
+		Set<String> groupSub = groupSubMap.get(cur) == null ? new HashSet<String>() : groupSubMap.get(cur);
+		groupSub.add(localSwtId);
+		groupSubMap.put(topic, groupSub);
+		//全网广播
 		spreadNewSub(cur);
 		return true;
 	}
 
 	private static void spreadNewSub(String cur) {
-		//TODO 尚缺收到后的处理函数
 		NewSub ns = new NewSub();
 		MultiHandler handler = new MultiHandler(uPort, WsnGlobleUtil.getSysTopicMap().get("sub"));
 
-		ns.topic = cur;
+		ns.group = groupName;
+		ns.swtId = localSwtId;
 		ns.hostMac = localMac;
 		ns.port = portWsn2Swt;
-		ns.swtId = localSwtId;
+
+		ns.topic = cur;
 
 		handler.v6Send(ns);
 	}

@@ -6,7 +6,6 @@ import edu.bupt.wangfu.mgr.message.HelloReceiver;
 import edu.bupt.wangfu.mgr.message.Hello_Receiver;
 import edu.bupt.wangfu.mgr.message.LSDBAnswer;
 import edu.bupt.wangfu.mgr.topology.HeartMgr;
-import edu.bupt.wangfu.mgr.topology.RouteMgr;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.HashSet;
@@ -21,7 +20,7 @@ public class WsnMgr extends SysInfo {
 	private WsnMgr() {
 		if (groupCtl.equals(localCtl)) {
 			downRepFlow();
-			RouteMgr.calOutPort2Wsn();
+//			RouteMgr.calOutPort2Wsn();
 		}
 		dt = new HeartMgr();
 		dt.startSendTask();//这里只管发送，流表在configure()时已经下发了
@@ -95,7 +94,7 @@ public class WsnMgr extends SysInfo {
 //				sendHandler.v6Send(ask);
 //				Object res = recvHandler.v6Receive();
 //
-//				getOK = SubMgr.initLSDB(res);
+//				getOK = SubPubMgr.initLSDB(res);
 //
 //				FlowHandler.deleteFlow(localCtl, outFlow);
 //				if (getOK) {
