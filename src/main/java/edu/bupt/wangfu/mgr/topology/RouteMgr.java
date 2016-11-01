@@ -19,6 +19,9 @@ public class RouteMgr extends SysInfo {
 		//TODO
 		ArrayList<String> route = new ArrayList<>();
 
+
+
+
 		Route r = new Route();
 		r.startSwtId = startSwtId;
 		r.endSwtId = endSwtId;
