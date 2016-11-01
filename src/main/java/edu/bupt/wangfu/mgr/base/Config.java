@@ -7,10 +7,7 @@ import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Timer;
+import java.util.*;
 
 /**
  * Created by lenovo on 2016-6-22.
@@ -55,15 +52,17 @@ public class Config extends SysInfo {
 		refreshPeriod = Long.parseLong(props.getProperty("refreshPeriod"));
 
 		edges = new HashSet<>();
-//		neighbors = new ConcurrentHashMap<>();
+		outSwitchs = new HashSet<>();
 		hostMap = new HashMap<>();
 		switchMap = new HashMap<>();
+		outerGroups = new HashSet<>();
 		localSubTopic = new HashSet<>();
 		groupSubMap = new HashMap<>();
 		lsaSeqNum = 0;
 		lsdb = new HashMap<>();
 		localCtl = new Controller(localAddr);
-		outSwtMap = new HashMap<>();
+//		outSwtMap = new HashMap<>();
+		groupRoutes = new ArrayList<>();
 	}
 
 

@@ -3,8 +3,6 @@ package edu.bupt.wangfu.opendaylight;
 
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.ldap.WSNTopicObject;
-import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl;
-import edu.bupt.wangfu.info.msg.udp.MsgDetectGroupCtl_;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -17,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by root on 15-10-6.
  */
 public class WsnGlobleUtil extends SysInfo {
+	//TODO 放到SysInfo？具体怎么存notify主题树？
 	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
 	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
 
@@ -33,7 +32,8 @@ public class WsnGlobleUtil extends SysInfo {
 	}
 
 	public static void initSysTopicMap() {
-		//TODO 把管理消息主题和对应的v6地址，注意有sub,pub这种eventType不一样的
+		//TODO 用SysTopic.properties初始化管理消息主题和对应的v6地址
+		//TODO 注意有sub,pub这种eventType不一样的
 		ConcurrentHashMap<String, String> res = new ConcurrentHashMap<>();
 		sysTopicMap = res;
 	}
@@ -73,29 +73,4 @@ public class WsnGlobleUtil extends SysInfo {
 		}
 		return null;
 	}
-
-	private static void getGroupCtl() {
-		//这里是一跳，但应该已经满足需要了
-		String topic = WsnGlobleUtil.getSysTopicMap().get("groupCtl");
-		MultiHandler handler = new MultiHandler(uPort, topic);
-		MsgDetectGroupCtl msg = new MsgDetectGroupCtl(groupName);
-
-		handler.v6Send(msg);
-
-		//这里会阻塞，没收到就一直挂起，直到到时间被GC;收到的第一个回复决定了这个集群的集群控制器是谁
-		Object res = handler.v6Receive();
-		MsgDetectGroupCtl_ mdgc_ = (MsgDetectGroupCtl_) res;
-		if (mdgc_.groupName.equals(groupName)) {//因为是广播出去的，所以要确定一下这条信息是否自己的集群伙伴
-			groupCtl = ((MsgDetectGroupCtl_) res).groupCtl;
-		}
-	}
-
-	/*public String[] splitString(String source_port) {
-		String[] str;
-		str = source_port.split(":");
-		for (String aStr : str) System.out.println(aStr);
-		return str;
-	}*/
-
-
 }

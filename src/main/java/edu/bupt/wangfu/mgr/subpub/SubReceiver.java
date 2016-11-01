@@ -3,7 +3,6 @@ package edu.bupt.wangfu.mgr.subpub;
 import edu.bupt.wangfu.info.msg.udp.NewSub;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
-import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,8 +14,7 @@ public class SubReceiver extends SysInfo implements Runnable {
 	private MultiHandler handler;
 
 	public SubReceiver() {
-		String topic = WsnGlobleUtil.getSysTopicMap().get("sub");
-		handler = new MultiHandler(uPort, topic);
+		handler = new MultiHandler(uPort, "sub", "sys");
 	}
 
 	@Override

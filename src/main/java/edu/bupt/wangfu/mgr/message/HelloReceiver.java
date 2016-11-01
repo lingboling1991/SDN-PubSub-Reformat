@@ -1,12 +1,10 @@
 package edu.bupt.wangfu.mgr.message;
 
-import edu.bupt.wangfu.info.device.Flow;
+import edu.bupt.wangfu.info.device.OuterGroup;
+import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.udp.MsgHello;
-import edu.bupt.wangfu.info.msg.udp.MsgHello_;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
-import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
 /**
  * Created by lenovo on 2016-6-23.
@@ -15,14 +13,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	private MultiHandler handler;
 
 	public HelloReceiver() {
-		String topic = WsnGlobleUtil.getSysTopicMap().get("hello");
-		//这里先假设一个集群只有一个交换机
-		for (String out : outSwtMap.keySet()) {
-			Flow inFlow = FlowHandler.getInstance().generateFlow(localSwtId, out, portWsn2Swt, topic, 0, 1);
-			//TODO out_port重复，流表会覆盖吗？如果会，那么这里就要注意是修改已有流表而不是新增一条，因为出端口都是wsn2swt，进端口会变多
-			FlowHandler.downFlow(localCtl, inFlow, "update");
-		}
-		handler = new MultiHandler(uPort, topic);
+		handler = new MultiHandler(uPort, "hello", "sys");
 	}
 
 	@Override
@@ -30,32 +21,80 @@ public class HelloReceiver extends SysInfo implements Runnable {
 		while (true) {
 			Object msg = handler.v6Receive();
 			MsgHello mh = (MsgHello) msg;
-			onHello(mh);
+
+			try {
+				onHello(mh);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
-	public void onHello(MsgHello mh) {//收到Hello消息，给予回复，回复类型为Hello_
-		for (String out : outSwtMap.keySet()) {
-			String topic = WsnGlobleUtil.getSysTopicMap().get("hello_");
-			Flow outFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, out, topic, 0, 1);
-			FlowHandler.downFlow(localCtl, outFlow, "update");
-
-			replyHello(mh, topic);
-
-			FlowHandler.deleteFlow(localCtl, outFlow);
+	public void onHello(MsgHello mh) throws InterruptedException {
+		if (mh.endGroup.equals(groupName)) {
+			//第三次握手，携带这个跨集群连接的全部信息
+			new Thread(new ReReHello(mh)).start();
+		} else {
+			//第一次握手，只携带发起方的信息，需要补完接收方的信息，也就是当前节点
+			new Thread(new ReHello(mh)).start();
 		}
 	}
 
-	private void replyHello(MsgHello mh, String topic) {
-		MsgHello_ reply = new MsgHello_();
-		MultiHandler handler = new MultiHandler(uPort, topic);
+	private class ReHello implements Runnable {
+		MsgHello re_hello;
 
-		reply.srcSwitch = localSwtId;
-		reply.srcGroup = groupName;
+		ReHello(MsgHello mh) {
+			MsgHello re_hello = new MsgHello();
 
-		reply.dstPort = mh.srcPort;
-		reply.dstGroup = mh.indicator;
+			re_hello.startGroup = mh.startGroup;
+			re_hello.endGroup = groupName;
+			re_hello.startBorderSwtId = mh.startBorderSwtId;
+			re_hello.startOutPort = mh.startOutPort;
+			re_hello.reHelloPeriod = mh.reHelloPeriod;
 
-		handler.v6Send(reply);
+			this.re_hello = re_hello;
+		}
+
+		@Override
+		public void run() {
+			for (Switch swt : outSwitchs) {
+				for (String out : swt.portSet) {
+					if (!out.equals("LOCAL")) {
+						re_hello.endBorderSwtId = swt.id;
+						re_hello.endOutPort = out;
+
+						//依次发送re_hello到每一个outPort，中间的时延保证对面有足够的时间反应第一条收到的信息
+						MultiHandler handler = new MultiHandler(uPort, "re_hello", "sys");
+						handler.v6Send(re_hello);
+
+						try {
+							Thread.sleep(re_hello.reHelloPeriod);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private class ReReHello implements Runnable {
+		MsgHello finalHello;
+
+		ReReHello(MsgHello mh) {
+			this.finalHello = mh;
+		}
+
+		@Override
+		public void run() {
+			//这里存的和最早发出hello信息的那边，顺序正好相反
+			OuterGroup g = new OuterGroup();
+			g.outerGroupName = finalHello.startGroup;
+			g.srcBorderSwtId = finalHello.endBorderSwtId;
+			g.srcOutPort = finalHello.endOutPort;
+			g.dstBorderSwtId = finalHello.startBorderSwtId;
+			g.dstOutPort = finalHello.startOutPort;
+			outerGroups.add(g);
+		}
 	}
 }

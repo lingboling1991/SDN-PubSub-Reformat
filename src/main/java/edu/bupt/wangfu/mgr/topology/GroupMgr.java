@@ -9,7 +9,6 @@ import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
 import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.RestProcess;
-import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -133,6 +132,12 @@ public class GroupMgr extends SysInfo {
 			}
 		}
 
+		for (Switch swt : switchMap.values()) {
+			if (swt.portSet.size() > 1) {
+				outSwitchs.add(swt);
+			}
+		}
+
 		System.out.println("test to see hostMap and switchMap");
 
 	}
@@ -142,12 +147,11 @@ public class GroupMgr extends SysInfo {
 		for (Switch swt : switchMap.values()) {
 			String id = swt.id;
 			for (String p : swt.getNeighbors().keySet()) {
-				String sys = WsnGlobleUtil.getSysTopicMap().get("sys");
-				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", sys, 1, 10);//TODO 优先级是越大越靠后吗？
+				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 //				TODO fromGroupCtlFlow.setV4Src(localAddr);
 				FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
 
-				Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", sys, 1, 10);
+				Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "rest", "sys", 1, 10);
 //				TODO toGroupCtlFlow.setV4Dst(localAddr);
 				FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
 			}
@@ -156,8 +160,7 @@ public class GroupMgr extends SysInfo {
 
 	//localCtl下发本地swt上flood流表
 	private static void downRegFlow() {
-		String sys = WsnGlobleUtil.getSysTopicMap().get("sys");
-		Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", sys, 1, 10);//TODO 优先级是越大越靠后吗？
+		Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 //		TODO fromGroupCtlFlow.setV4Dst(groupCtl.url);
 		FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
 	}

@@ -6,7 +6,6 @@ import edu.bupt.wangfu.info.msg.udp.NewSub;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
-import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -44,7 +43,7 @@ public class SubPubMgr extends SysInfo {
 
 	private static void spreadNewSub(String cur) {
 		NewSub ns = new NewSub();
-		MultiHandler handler = new MultiHandler(uPort, WsnGlobleUtil.getSysTopicMap().get("sub"));
+		MultiHandler handler = new MultiHandler(uPort, "sub", "sys");
 
 		ns.group = groupName;
 		ns.swtId = localSwtId;
@@ -61,17 +60,17 @@ public class SubPubMgr extends SysInfo {
 		for (Switch swt : switchMap.values()) {
 			//swt上连接着集群内其他swt或者host的端口
 			for (String port : swt.getNeighbors().keySet()) {
-				Flow floodFlow = FlowHandler.getInstance().generateSubPubFlow(swt.id, port, "flood", "sub", 1, 10);//TODO 优先级是越大越靠后吗？
+				Flow floodFlow = FlowHandler.getInstance().generateFlow(swt.id, port, "flood", "sub", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 				FlowHandler.downFlow(localCtl, floodFlow, "add");
-				floodFlow = FlowHandler.getInstance().generateSubPubFlow(swt.id, port, "flood", "pub", 1, 10);//TODO 优先级是越大越靠后吗？
+				floodFlow = FlowHandler.getInstance().generateFlow(swt.id, port, "flood", "pub", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 				FlowHandler.downFlow(localCtl, floodFlow, "add");
 			}
 			//swt上连接着集群外swt的端口
 			for (String port : swt.portSet) {
 				if (!port.equals("LOCAL")) {
-					Flow floodFlow = FlowHandler.getInstance().generateSubPubFlow(swt.id, port, "flood", "sub", 1, 10);//TODO 优先级是越大越靠后吗？
+					Flow floodFlow = FlowHandler.getInstance().generateFlow(swt.id, port, "flood", "sub", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 					FlowHandler.downFlow(localCtl, floodFlow, "add");
-					floodFlow = FlowHandler.getInstance().generateSubPubFlow(swt.id, port, "flood", "pub", 1, 10);//TODO 优先级是越大越靠后吗？
+					floodFlow = FlowHandler.getInstance().generateFlow(swt.id, port, "flood", "pub", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 					FlowHandler.downFlow(localCtl, floodFlow, "add");
 				}
 			}

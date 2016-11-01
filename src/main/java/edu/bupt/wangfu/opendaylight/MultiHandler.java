@@ -13,11 +13,16 @@ import java.net.MulticastSocket;
  */
 public class MultiHandler {
 	private int port;
-	private String v6addr;
+	private String v6addr;//形如FF01:0000:0000:0000:0001:2345:6789:abcd
 
-	public MultiHandler(int port, String v6addr) {
+	public MultiHandler(int port, String topic, String topicType) {
 		this.port = port;
-		this.v6addr = v6addr;//形如FF01:0000:0000:0000:0001:2345:6789:abcd
+		if (topicType.equals("sys")) {
+			this.v6addr = WsnGlobleUtil.getSysTopicMap().get(topic);
+		} else if (topicType.equals("notify")) {
+			//TODO 和generateFlow那里一样，需要确定怎么存notify主题
+			this.v6addr = "12";
+		}
 	}
 
 	public Object v6Receive() {

@@ -113,22 +113,17 @@ public class FlowHandler extends SysInfo {
 
 	//TODO 生成函数找韩波
 	//这里使用单例模式是为了方便计数flowcount，每条流表的编号必须不一样
-	public Flow generateFlow(String swtId, String in, String out, String topic, int t_id, int pri) {
-		//swtId是switch在odl里的id，并不是mac或者dpid
+	public Flow generateFlow(String swtId, String in, String out, String topic, String topicType, int t_id, int pri) {
+		String v6Addr;
+		if (topicType.equals("sys")) {
+			v6Addr = WsnGlobleUtil.getSysTopicMap().get(topic);
+		} else if (topicType.equals("notify")) {
+			v6Addr = "12";
+		}
+
 		flowcount++;
 		String table_id = String.valueOf(t_id);
 		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
-
-		Flow flow = new Flow();
-		return flow;
-	}
-
-	public Flow generateSubPubFlow(String swtId, String in, String out, String eventType, int t_id, int pri) {
-		//swtId是switch在odl里的id，并不是mac或者dpid
-		flowcount++;
-		String table_id = String.valueOf(t_id);
-		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
-		eventType = eventType + "";
 
 		Flow flow = new Flow();
 		return flow;
