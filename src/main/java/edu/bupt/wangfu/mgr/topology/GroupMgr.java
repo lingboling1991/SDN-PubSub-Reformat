@@ -28,18 +28,11 @@ public class GroupMgr extends SysInfo {
 		setMaps(new Controller("10.108.165.188:8181"));
 	}
 
-	public static void initGroup() throws InterruptedException {
+	public static void initGroup()  {
 		refreshTimer.schedule(refreshTask, 0, refreshPeriod);
-		while (switchMap.size() == 0)
-			Thread.sleep(100);
-
-		//下发访问groupCtl的flood流表
-		if (localCtl.equals(groupCtl)) {
-			downRepFlow();
-		} else downRegFlow();
 	}
 
-	//初始化hostMap，switchMap，outSwtMap
+	//初始化hostMap，switchMap，outPorts
 	private static void setMaps(Controller controller) {
 		String url = controller.url + "/restconf/operational/network-topology:network-topology/";
 
@@ -146,7 +139,7 @@ public class GroupMgr extends SysInfo {
 	private static void downRepFlow() {
 		for (Switch swt : switchMap.values()) {
 			String id = swt.id;
-			for (String p : swt.getNeighbors().keySet()) {
+			for (String p : swt.neighbors.keySet()) {
 				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 //				TODO fromGroupCtlFlow.setV4Src(localAddr);
 				FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
@@ -170,7 +163,20 @@ public class GroupMgr extends SysInfo {
 		@Override
 		public void run() {
 			setMaps(groupCtl);
+			while (switchMap.size() == 0)
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			SubPubMgr.downSubPubFlow();
+			RouteMgr.downSyncGroupRouteFlow();
+			//下发访问groupCtl的flood流表
+			if (localCtl.equals(groupCtl)) {
+				downRepFlow();
+			} else {
+				downRegFlow();
+			}
 		}
 	}
 }

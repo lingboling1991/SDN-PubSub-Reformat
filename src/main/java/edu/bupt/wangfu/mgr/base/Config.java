@@ -2,12 +2,17 @@ package edu.bupt.wangfu.mgr.base;
 
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Host;
+import edu.bupt.wangfu.info.msg.udp.Route;
 import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Timer;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by lenovo on 2016-6-22.
@@ -53,16 +58,21 @@ public class Config extends SysInfo {
 
 		edges = new HashSet<>();
 		outSwitchs = new HashSet<>();
-		hostMap = new HashMap<>();
-		switchMap = new HashMap<>();
+		hostMap = new ConcurrentHashMap<>();
+		switchMap = new ConcurrentHashMap<>();
 		outerGroups = new HashSet<>();
+
 		localSubTopic = new HashSet<>();
-		groupSubMap = new HashMap<>();
+		groupSubMap = new ConcurrentHashMap<>();
+		outerSubMap = new ConcurrentHashMap<>();
+		groupPubMap = new ConcurrentHashMap<>();
+		outerPubMap = new ConcurrentHashMap<>();
+
 		lsaSeqNum = 0;
-		lsdb = new HashMap<>();
+		lsdb = new ConcurrentHashMap<>();
 		localCtl = new Controller(localAddr);
 //		outSwtMap = new HashMap<>();
-		groupRoutes = new ArrayList<>();
+		groupRoutes = Collections.synchronizedSet(new HashSet<Route>());
 	}
 
 

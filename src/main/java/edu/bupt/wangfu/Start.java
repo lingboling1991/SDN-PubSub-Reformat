@@ -9,15 +9,10 @@ import edu.bupt.wangfu.mgr.topology.GroupMgr;
  */
 public class Start {
 	public static void main(String[] args) {
-		try {
-			Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
-			GroupMgr.initGroup();//初始化本地关于集群的hostMap，switchMap还有outPorts
+		Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
+		GroupMgr.initGroup();//初始化本地关于集群的hostMap，switchMap还有outPorts
 
-			new Thread(new mgrInstance()).start();
-
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+		new Thread(new mgrInstance()).start();
 	}
 
 	private static class mgrInstance implements Runnable {

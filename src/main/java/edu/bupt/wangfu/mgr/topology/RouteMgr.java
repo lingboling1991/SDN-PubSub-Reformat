@@ -7,6 +7,7 @@ import edu.bupt.wangfu.info.msg.udp.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
+import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +17,23 @@ import java.util.List;
  */
 public class RouteMgr extends SysInfo {
 	public static List<String> calRoute(String startSwtId, String endSwtId) {
-		//TODO
+		//TODO 冠群
 		ArrayList<String> route = new ArrayList<>();
 
 		Route r = new Route();
+		r.group = groupName;
 		r.startSwtId = startSwtId;
 		r.endSwtId = endSwtId;
 		r.route = route;
 
 		groupRoutes.add(r);
+		spreadRoute(r);//在集群内广播这条路径，后面再需要就不用重复计算了
 		return route;
+	}
+
+	private static void spreadRoute(Route r) {
+		MultiHandler handler = new MultiHandler(uPort, "route", "sys");
+		handler.v6Send(r);
 	}
 
 	public static List<Flow> downRouteFlows(List<String> route, String in, String out, String topic, String topicType, Controller ctl) {
@@ -55,6 +63,19 @@ public class RouteMgr extends SysInfo {
 	public static void delRouteFlows(List<Flow> routeFlows) {
 		for (Flow flow : routeFlows) {
 			FlowHandler.deleteFlow(groupCtl, flow);
+		}
+	}
+
+	//下发同步流表，使wsn计算出来的新route可以全网同步
+	public static void downSyncGroupRouteFlow() {
+		Flow floodOutFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "route", "sys", 1, 10);
+		FlowHandler.downFlow(localCtl, floodOutFlow, "add");
+
+		for (Switch swt : switchMap.values()) {
+			for (String p : swt.neighbors.keySet()) {
+				Flow floodInFlow = FlowHandler.getInstance().generateFlow(localSwtId, p, "flood", "route", "sys", 1, 10);
+				FlowHandler.downFlow(localCtl, floodInFlow, "add");
+			}
 		}
 	}
 }

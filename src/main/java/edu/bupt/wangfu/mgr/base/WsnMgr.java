@@ -1,9 +1,7 @@
 package edu.bupt.wangfu.mgr.base;
 
-import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.topology.HeartMgr;
-
-import java.util.HashSet;
+import edu.bupt.wangfu.mgr.topology.SyncRouteReceiver;
 
 /**
  * Created by lenovo on 2016-6-22.
@@ -14,23 +12,12 @@ public class WsnMgr extends SysInfo {
 
 	private WsnMgr() {
 		if (groupCtl.equals(localCtl)) {
-			downRepFlow();
 			dt = new HeartMgr();
 		}
+		new Thread(new SyncRouteReceiver()).start();
 	}
 
 	public static WsnMgr getInstance() {
 		return wsnMgr;
-	}
-
-	private void downRepFlow() {
-		HashSet<Switch> swts = getGroupOutSwts();
-		for (Switch swt : swts) {
-//			!!!FlowHandler.getInstance().generateFlow();
-		}
-	}
-
-	private HashSet<Switch> getGroupOutSwts() {
-		return new HashSet<>();
 	}
 }

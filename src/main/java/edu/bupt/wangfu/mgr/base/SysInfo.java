@@ -8,8 +8,6 @@ import edu.bupt.wangfu.info.msg.udp.LSA;
 import edu.bupt.wangfu.info.msg.udp.Route;
 import edu.bupt.wangfu.mgr.topology.graph.Edge;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,22 +30,24 @@ public abstract class SysInfo {
 	public static String portWsn2Swt;//wsn连接switch，switch上的的端口
 	public static Set<Edge> edges;//集群内所有swt连接的边的集合
 	public static Set<Switch> outSwitchs; //本集群所有拥有对外端口的swt的集合
-	public static List<Route> groupRoutes;//集群内所有计算过的路径
+	public static Set<Route> groupRoutes;//集群内所有计算过的路径
 	// key是连接的端口，value是对面的集群名
 	public static Map<String, Host> hostMap;//当前集群所有host，key是mac
 	public static Map<String, Switch> switchMap;//当前集群所有switch，key是id
 	public static Set<OuterGroup> outerGroups;//本集群和其他集群的连接情况
 	//订阅表
 	public static Set<String> localSubTopic;//本地订阅表，value是本地的订阅主题
-	public static Map<String, Set<String>> groupSubMap;//本地的订阅信息，key是topic，value是swtId的集合
+	public static Map<String, Set<String>> groupSubMap;//本集群的订阅信息，key是topic，value是swtId的集合
 	public static Map<String, Set<String>> outerSubMap;//全网的订阅信息，key是topic，value是groupName的集合
+	public static Map<String, Set<String>> groupPubMap;//本集群的发布信息，key是topic，value是swtId的集合
+	public static Map<String, Set<String>> outerPubMap;//全网的发布信息，key是topic，value是groupName的集合
 	//	public static LSA cacheLSA; //缓存LSA，缓存需要发送的LSA数据
 	//管理员属性
 	public static String adminAddr;//管理者的地址
 	public static int adminPort;//管理者的地址
 	//LSDB
 	public static int lsaSeqNum;//LSA的序列号
-	public static HashMap<String, LSA> lsdb;//LSA数据库，以swtId标示该集群发出的LSA消息
+	public static Map<String, LSA> lsdb;//LSA数据库，以swtId标示该集群发出的LSA消息
 	//心跳管理器
 	public static long reHelloPeriod;//失效阀值的缺省值
 	public static long helloPeriod;//发送hello的频率，这个间隔内应该足够完成re_hello等动作
