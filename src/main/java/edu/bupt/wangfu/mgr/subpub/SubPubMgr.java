@@ -22,14 +22,13 @@ public class SubPubMgr extends SysInfo {
 	private static Timer splitTimer = new Timer();
 
 	public SubPubMgr() {
-		new Thread(new SubPubRegister(tPort)).start();
+		new Thread(new SubPubRegister(tPort)).start();//接收新发布者和订阅者的注册
 
 		new Thread(new SubReceiver()).start();
 		new Thread(new PubReceiver()).start();
 		splitTimer.schedule(splitTask, checkSplitPeriod, checkSplitPeriod);
 	}
 
-	//TODO 后面测试时要考虑程序如何通知wsn本地产生新订阅
 	public static boolean subscribe(String topic) {
 		String[] topicPath = topic.split(":");
 		//查看是否已订阅该主题的父主题
@@ -100,7 +99,6 @@ public class SubPubMgr extends SysInfo {
 		return true;
 	}
 
-	//TODO 同subscribe()
 	public static boolean publish(String topic) {
 		//更新本集群发布
 		Set<String> groupPub = groupPubMap.get(topic) == null ? new HashSet<String>() : groupPubMap.get(topic);

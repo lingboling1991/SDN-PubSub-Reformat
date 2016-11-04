@@ -9,4 +9,5 @@ public class SPRegister implements Serializable {
 
 	public Action type;
 	public String topic;
+	public boolean success;
 }

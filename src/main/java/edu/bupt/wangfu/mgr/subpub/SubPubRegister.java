@@ -49,19 +49,39 @@ public class SubPubRegister implements Runnable {
 
 		@Override
 		public void run() {
-			String msg;
 			try {
 				ObjectInputStream ois = SocketUtil.getObjReader(s);
 				ObjectOutputStream oos = SocketUtil.getObjWriter(s);
 				Object obj = ois.readObject();
-				while (obj instanceof SPRegister){} /*{
-					System.out.println(msg);
-					pw.println(echo(msg));
-
-					if (msg.equals("bye")) {
-						break;
+				while (obj instanceof SPRegister) {
+					SPRegister spr = (SPRegister) obj;
+					switch (spr.type) {
+						case SUB:
+							SubPubMgr.subscribe(spr.topic);
+							spr.success = true;
+							oos.writeObject(spr);
+							break;
+						case PUB:
+							SubPubMgr.publish(spr.topic);
+							spr.success = true;
+							oos.writeObject(spr);
+							break;
+						case UNSUB:
+							SubPubMgr.unsubscribe(spr.topic);
+							spr.success = true;
+							oos.writeObject(spr);
+							break;
+						case UNPUB:
+							SubPubMgr.unPublish(spr.topic);
+							spr.success = true;
+							oos.writeObject(spr);
+							break;
+						default:
+							spr.success = false;
+							oos.writeObject(spr);
+							break;
 					}
-				}*/
+				}
 			} catch (IOException | ClassNotFoundException e) {
 				e.printStackTrace();
 			}

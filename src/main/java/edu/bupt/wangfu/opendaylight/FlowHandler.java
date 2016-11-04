@@ -78,12 +78,6 @@ public class FlowHandler extends SysInfo {
 		return binIndex.toString();
 	}
 
-	public static String getDpid(Controller controller, String localAddr) {
-		//TODO 执行交换机状态查询功能的 地址 还需确定，返回wsn连接的交换机的dpid
-		String switchStatusUri = controller.url + "/";
-		return RestProcess.doClientGet(switchStatusUri);
-	}
-
 	public static boolean downFlows(Controller controller, List<Flow> flows, List<String> actions) {
 		boolean success = false;
 		for (Flow flow : flows) {

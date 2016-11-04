@@ -46,7 +46,6 @@ public class WsnGlobleUtil extends SysInfo {
 		return notifyTopicList;
 	}
 
-	//TODO 需要验证
 	public static String getLinkedSwtId(String wsnMac) {
 		//返回wsn程序所在主机所连Switch的odl_id
 		String url = groupCtl.url + "/restconf/operational/network-topology:network-topology/";
