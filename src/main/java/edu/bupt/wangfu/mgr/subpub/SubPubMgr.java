@@ -2,21 +2,31 @@ package edu.bupt.wangfu.mgr.subpub;
 
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
-import edu.bupt.wangfu.info.msg.udp.SubPubInfo;
+import edu.bupt.wangfu.info.msg.SubPubInfo;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.subpub.rcver.PubReceiver;
+import edu.bupt.wangfu.mgr.subpub.rcver.SubReceiver;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by LCW on 2016-7-19.
  */
 public class SubPubMgr extends SysInfo {
-	SubPubMgr() {
+	private static CheckSplit splitTask = new CheckSplit(splitThreshold);
+	private static Timer splitTimer = new Timer();
+
+	public SubPubMgr() {
+		new Thread(new SubPubRegister(tPort)).start();
+
 		new Thread(new SubReceiver()).start();
 		new Thread(new PubReceiver()).start();
+		splitTimer.schedule(splitTask, checkSplitPeriod, checkSplitPeriod);
 	}
 
 	//TODO 后面测试时要考虑程序如何通知wsn本地产生新订阅
@@ -32,13 +42,16 @@ public class SubPubMgr extends SysInfo {
 				cur += ":" + topicPath[i];
 		}
 		if (needUnite(topic)) {
-			String fatherTopic = getTopicFather(topic);
-
-
+			String father = getTopicFather(topic);
+			joinedSubTopics.add(father);
+			subscribe(father);
+			unsubscribeSons(father);
 			return true;
 		} else {
 			//更新本地订阅
 			localSubTopic.add(cur);
+			if (joinedSubTopics.contains(cur))
+				joinedSubTopics.remove(cur);
 			//更新本集群订阅
 			Set<String> groupSub = groupSubMap.get(cur) == null ? new HashSet<String>() : groupSubMap.get(cur);
 			groupSub.add(localSwtId);
@@ -49,7 +62,16 @@ public class SubPubMgr extends SysInfo {
 		}
 	}
 
-	//切出该主题的父主题
+	private static void unsubscribeSons(String father) {
+		for (String topic : localSubTopic) {
+			if (topic.contains(father) && topic.length() > father.length()) {
+				unsubscribe(topic);
+				joinedUnsubTopics.add(topic);
+			}
+		}
+	}
+
+	//取得该主题的父主题
 	private static String getTopicFather(String topic) {
 		String[] topicPath = topic.split(":");
 		String fatherTopic = topicPath[0];
@@ -60,13 +82,13 @@ public class SubPubMgr extends SysInfo {
 	}
 
 	private static boolean needUnite(String topic) {
-		//TODO 冠群那里有算法
+		//TODO 先确定主题是如何存储的，再完成这块
 		return true;
 	}
 
-	public static boolean unSubscribe(String topic) {
+	public static boolean unsubscribe(String topic) {
 		localSubTopic.remove(topic);
-		if (true)//TODO 这里要判断这个主题订阅是否是聚合而成的，如果是，那么不能取消订阅（下面还有若干子主题，取消了就都收不到了）
+		if (joinedSubTopics.contains(topic))//若这个订阅是聚合而成的，那么不能取消，因为并不是真实订阅
 			return false;
 		if (groupSubMap.get(topic) == null)
 			return false;//本地没有这个订阅
@@ -138,6 +160,33 @@ public class SubPubMgr extends SysInfo {
 					FlowHandler.downFlow(localCtl, floodFlow, "add");
 				}
 			}
+		}
+	}
+
+	private static class CheckSplit extends TimerTask {
+		int splitThreshold = 1;//TODO 需要动态设置？
+
+		public CheckSplit(int splitThreshold) {
+			this.splitThreshold = splitThreshold;
+		}
+
+		@Override
+		public void run() {
+			for (String father : joinedSubTopics) {
+				if (getCurFlowStatus(father) > splitThreshold) {
+					unsubscribe(father);
+					for (String son : joinedUnsubTopics) {
+						if (son.contains(father)) {
+							subscribe(son);
+						}
+					}
+				}
+			}
+		}
+
+		private int getCurFlowStatus(String father) {
+			//TODO 需要查询groupCtl，逻辑要问牛琳琳
+			return 1;//TODO 返回的是百分比？20/100就返回20？
 		}
 	}
 }

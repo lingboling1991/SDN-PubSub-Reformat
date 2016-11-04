@@ -2,11 +2,11 @@ package edu.bupt.wangfu.mgr.topology;
 
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
-import edu.bupt.wangfu.info.msg.udp.MsgHello;
-import edu.bupt.wangfu.info.msg.udp.Route;
+import edu.bupt.wangfu.info.msg.Hello;
+import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.mgr.message.HelloReceiver;
-import edu.bupt.wangfu.mgr.message.ReHelloReceiver;
+import edu.bupt.wangfu.mgr.topology.rcver.HelloReceiver;
+import edu.bupt.wangfu.mgr.topology.rcver.ReHelloReceiver;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.io.FileInputStream;
@@ -68,7 +68,7 @@ public class HeartMgr extends SysInfo {
 	}
 
 	private void sendHello(String out, String swtId) {
-		MsgHello hello = new MsgHello();
+		Hello hello = new Hello();
 		MultiHandler handler = new MultiHandler(uPort, "hello", "sys");
 
 		hello.startGroup = groupName;

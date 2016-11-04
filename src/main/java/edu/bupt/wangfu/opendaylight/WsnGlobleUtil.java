@@ -2,12 +2,12 @@ package edu.bupt.wangfu.opendaylight;
 
 
 import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.ldap.WSNTopicObject;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +25,7 @@ public class WsnGlobleUtil extends SysInfo {
 		System.out.println(x.substring(9, x.length() - 1));
 	}
 
-	public static void initNotifyTopicList(WSNTopicObject topicTree) {
+	public static void initNotifyTopicList(HashSet<String> topicTree) {
 		//TODO 把主题树转化成编码树，编码是v6地址的一部分
 		List<List<String>> res = new ArrayList<>();
 		notifyTopicList = res;

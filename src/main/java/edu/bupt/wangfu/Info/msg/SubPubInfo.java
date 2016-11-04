@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.msg.udp;
+package edu.bupt.wangfu.info.msg;
 
 import edu.bupt.wangfu.mgr.subpub.Action;
 

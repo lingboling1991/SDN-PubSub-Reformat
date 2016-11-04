@@ -3,7 +3,7 @@ package edu.bupt.wangfu.mgr.topology;
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
-import edu.bupt.wangfu.info.msg.udp.Route;
+import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.topology.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
@@ -11,6 +11,7 @@ import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by LCW on 2016-7-16.
@@ -29,6 +30,10 @@ public class RouteMgr extends SysInfo {
 		groupRoutes.add(r);
 		spreadRoute(r);//在集群内广播这条路径，后面再需要就不用重复计算了
 		return route;
+	}
+
+	public static void calGraph(Set<Switch> subers, Set<Switch> pubers) {
+		//TODO ！！！张冠群算法，计算发布者订阅者组成的最小连通图，以及转发的消息方向
 	}
 
 	private static void spreadRoute(Route r) {

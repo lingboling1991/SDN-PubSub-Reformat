@@ -1,7 +1,7 @@
-package edu.bupt.wangfu.mgr.message;
+package edu.bupt.wangfu.mgr.topology.rcver;
 
 import edu.bupt.wangfu.info.device.OuterGroup;
-import edu.bupt.wangfu.info.msg.udp.MsgHello;
+import edu.bupt.wangfu.info.msg.Hello;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -19,12 +19,12 @@ public class ReHelloReceiver extends SysInfo implements Runnable {
 	public void run() {
 		while (true) {
 			Object msg = handler.v6Receive();
-			MsgHello re_hello = (MsgHello) msg;
+			Hello re_hello = (Hello) msg;
 			onReHello(re_hello);
 		}
 	}
 
-	private void onReHello(MsgHello re_hello) {
+	private void onReHello(Hello re_hello) {
 		OuterGroup g = new OuterGroup();
 		g.outerGroupName = re_hello.endGroup;
 		g.srcBorderSwtId = re_hello.startBorderSwtId;

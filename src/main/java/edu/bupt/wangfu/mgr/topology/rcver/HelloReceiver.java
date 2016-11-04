@@ -1,8 +1,8 @@
-package edu.bupt.wangfu.mgr.message;
+package edu.bupt.wangfu.mgr.topology.rcver;
 
 import edu.bupt.wangfu.info.device.OuterGroup;
 import edu.bupt.wangfu.info.device.Switch;
-import edu.bupt.wangfu.info.msg.udp.MsgHello;
+import edu.bupt.wangfu.info.msg.Hello;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -20,7 +20,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	public void run() {
 		while (true) {
 			Object msg = handler.v6Receive();
-			MsgHello mh = (MsgHello) msg;
+			Hello mh = (Hello) msg;
 
 			try {
 				onHello(mh);
@@ -30,7 +30,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 		}
 	}
 
-	public void onHello(MsgHello mh) throws InterruptedException {
+	public void onHello(Hello mh) throws InterruptedException {
 		if (mh.endGroup.equals(groupName)) {
 			//第三次握手，携带这个跨集群连接的全部信息
 			new Thread(new ReReHello(mh)).start();
@@ -41,10 +41,10 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	}
 
 	private class ReHello implements Runnable {
-		MsgHello re_hello;
+		Hello re_hello;
 
-		ReHello(MsgHello mh) {
-			MsgHello re_hello = new MsgHello();
+		ReHello(Hello mh) {
+			Hello re_hello = new Hello();
 
 			re_hello.startGroup = mh.startGroup;
 			re_hello.endGroup = groupName;
@@ -79,9 +79,9 @@ public class HelloReceiver extends SysInfo implements Runnable {
 	}
 
 	private class ReReHello implements Runnable {
-		MsgHello finalHello;
+		Hello finalHello;
 
-		ReReHello(MsgHello mh) {
+		ReReHello(Hello mh) {
 			this.finalHello = mh;
 		}
 

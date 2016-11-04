@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.info.msg.udp;
+package edu.bupt.wangfu.info.msg;
 
 import java.io.Serializable;
 import java.util.List;

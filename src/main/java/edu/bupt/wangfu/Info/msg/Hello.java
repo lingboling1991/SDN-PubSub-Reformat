@@ -1,8 +1,8 @@
-package edu.bupt.wangfu.info.msg.udp;
+package edu.bupt.wangfu.info.msg;
 
 import java.io.Serializable;
 
-public class MsgHello implements Serializable {
+public class Hello implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	public String startGroup;//本地集群名称
