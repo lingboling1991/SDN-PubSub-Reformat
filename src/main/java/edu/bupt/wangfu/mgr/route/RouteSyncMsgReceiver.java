@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.mgr.topology;
+package edu.bupt.wangfu.mgr.route;
 
 import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
@@ -7,10 +7,10 @@ import edu.bupt.wangfu.opendaylight.MultiHandler;
 /**
  * Created by lenovo on 2016-10-27.
  */
-public class SyncRouteReceiver extends SysInfo implements Runnable {
+public class RouteSyncMsgReceiver extends SysInfo implements Runnable {
 	private MultiHandler handler;
 
-	public SyncRouteReceiver() {
+	public RouteSyncMsgReceiver() {
 		handler = new MultiHandler(uPort, "route", "sys");
 	}
 
@@ -19,14 +19,14 @@ public class SyncRouteReceiver extends SysInfo implements Runnable {
 		while (true) {
 			Object msg = handler.v6Receive();
 			Route r = (Route) msg;
-			new Thread(new SyncRouteHandler(r)).start();
+			new Thread(new SyncMsgHandler(r)).start();
 		}
 	}
 
-	private class SyncRouteHandler implements Runnable {
+	private class SyncMsgHandler implements Runnable {
 		private Route route;
 
-		SyncRouteHandler(Route r) {
+		SyncMsgHandler(Route r) {
 			this.route = r;
 		}
 

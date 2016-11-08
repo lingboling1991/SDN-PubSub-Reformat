@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.mgr.topology.graph;
+package edu.bupt.wangfu.mgr.route.graph;
 
 public class Edge implements Comparable {
 	private String start;

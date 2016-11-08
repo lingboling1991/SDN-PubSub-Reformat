@@ -1,11 +1,11 @@
-package edu.bupt.wangfu.mgr.topology;
+package edu.bupt.wangfu.mgr.route;
 
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.mgr.topology.graph.Edge;
+import edu.bupt.wangfu.mgr.route.graph.Edge;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -18,6 +18,11 @@ import java.util.Set;
  */
 public class RouteMgr extends SysInfo {
 	public static List<String> calRoute(String startSwtId, String endSwtId) {
+		for (Route r : groupRoutes) {
+			if (r.startSwtId.equals(startSwtId) && r.endSwtId.equals(endSwtId)) {
+				return r.route;
+			}
+		}
 		//TODO 冠群
 		ArrayList<String> route = new ArrayList<>();
 
@@ -34,6 +39,12 @@ public class RouteMgr extends SysInfo {
 
 	public static void calGraph(Set<Switch> subers, Set<Switch> pubers) {
 		//TODO ！！！张冠群算法，计算发布者订阅者组成的最小连通图，以及转发的消息方向
+		for (Switch puber : pubers) {
+			for (Switch suber : subers) {
+				List<String> r = calRoute(puber.id, suber.id);
+
+			}
+		}
 	}
 
 	private static void spreadRoute(Route r) {

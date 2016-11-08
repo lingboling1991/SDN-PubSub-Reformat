@@ -1,4 +1,4 @@
-package edu.bupt.wangfu.mgr.topology.graph;
+package edu.bupt.wangfu.mgr.route.graph;
 
 import java.util.Map;
 import java.util.Set;

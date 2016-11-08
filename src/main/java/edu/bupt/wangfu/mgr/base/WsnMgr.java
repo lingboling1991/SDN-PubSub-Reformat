@@ -2,7 +2,7 @@ package edu.bupt.wangfu.mgr.base;
 
 import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
 import edu.bupt.wangfu.mgr.topology.HeartMgr;
-import edu.bupt.wangfu.mgr.topology.SyncRouteReceiver;
+import edu.bupt.wangfu.mgr.route.RouteSyncMsgReceiver;
 
 /**
  * Created by lenovo on 2016-6-22.
@@ -16,7 +16,7 @@ public class WsnMgr extends SysInfo {
 		if (groupCtl.equals(localCtl)) {
 			dt = new HeartMgr();
 		}
-		new Thread(new SyncRouteReceiver()).start();
+		new Thread(new RouteSyncMsgReceiver()).start();
 		spMgr = new SubPubMgr();
 	}
 

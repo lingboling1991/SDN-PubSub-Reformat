@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class FlowHandler extends SysInfo {
 	private static FlowHandler ins;
-	private static int flowcount = 0;
+	private static int flowcount;
 
 	private FlowHandler() {
 		this.flowcount = 0;
@@ -23,7 +23,7 @@ public class FlowHandler extends SysInfo {
 		return ins;
 	}
 
-	public static String topicName2multiV6Addr(String topicName, List<List<String>> topicList, int queueNo) {
+	/*public static String topicName2multiV6Addr(String topicName, List<List<String>> topicList, int queueNo) {
 		String tc = topicName2topicCode(topicName, topicList);
 		return topicCode2multiV6Addr(tc, queueNo);
 	}
@@ -77,7 +77,7 @@ public class FlowHandler extends SysInfo {
 
 		return binIndex.toString();
 	}
-
+*/
 	public static boolean downFlows(Controller controller, List<Flow> flows, List<String> actions) {
 		boolean success = false;
 		for (Flow flow : flows) {
@@ -110,9 +110,9 @@ public class FlowHandler extends SysInfo {
 	public Flow generateFlow(String swtId, String in, String out, String topic, String topicType, int t_id, int pri) {
 		String v6Addr;
 		if (topicType.equals("sys")) {
-			v6Addr = WsnGlobleUtil.getSysTopicMap().get(topic);
+			v6Addr = sysTopicAddrMap.get(topic);
 		} else if (topicType.equals("notify")) {
-			v6Addr = "12";
+			v6Addr = notifyTopicAddrMap.get(topic);
 		}
 
 		flowcount++;

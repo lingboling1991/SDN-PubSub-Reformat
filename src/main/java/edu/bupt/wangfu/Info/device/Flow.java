@@ -8,39 +8,11 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class Flow {
-	//	private static String flowCount;
-	private int flow_id;
-	private int table_id;
-	private JSONObject jsonContent;
-	private String xmlContent;
+	public int flow_id;
+	public int table_id;
 
-	public JSONObject getJsonContent() {
-		return jsonContent;
-	}
-
-	public void setJsonContent(JSONObject jsonContent) {
-		this.jsonContent = jsonContent;
-	}
-
-	public int getFlow_id() {
-		return flow_id;
-	}
-
-	public void setFlow_id(int flow_id) {
-		this.flow_id = flow_id;
-	}
-
-	public int getTable_id() {
-		return table_id;
-	}
-
-	public void setTable_id(int table_id) {
-		this.table_id = table_id;
-	}
-
-	public String getXmlContent() {
-		return xmlContent;
-	}
+	public JSONObject jsonContent;
+	public String xmlContent;
 
 	public void setXmlContent(String xmlContent, int flowcount, String tableId) {
 		//这里是测试，不想在这里写太多xml格式的东西

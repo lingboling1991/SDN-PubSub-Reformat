@@ -57,6 +57,8 @@ public class SubReceiver extends SysInfo implements Runnable {
 					outerSubMap.put(ns.topic, outerSub);
 				}
 			}
+
+
 		}
 	}
 }

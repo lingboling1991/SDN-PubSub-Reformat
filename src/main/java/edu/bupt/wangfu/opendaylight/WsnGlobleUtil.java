@@ -1,49 +1,85 @@
 package edu.bupt.wangfu.opendaylight;
 
 
-import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 /**
  * Created by root on 15-10-6.
  */
 public class WsnGlobleUtil extends SysInfo {
-	//TODO 放到SysInfo？具体怎么存notify主题树？
-	private static List<List<String>> notifyTopicList = new ArrayList<>();//主题树-->编码树
-	private static ConcurrentHashMap<String, String> sysTopicMap = new ConcurrentHashMap<>();//系统消息对应的编码
-
 	public static void main(String[] args) {
-		Controller ctl = new Controller("10.108.165.188:8181");
-		String x = "openflow:117169754616649";
-		System.out.println(x.substring(9, x.length() - 1));
 	}
 
-	public static void initNotifyTopicList(HashSet<String> topicTree) {
-		//TODO 把主题树转化成编码树，编码是v6地址的一部分
-		List<List<String>> res = new ArrayList<>();
-		notifyTopicList = res;
+	public static void initNotifyTopicMap() {
+		Map<String, String> ntcMap = getNotifyTopicCodeMap();
+		for (String key : ntcMap.keySet()) {
+			String topicAddr = "11111111"//prefix ff 8bit
+					+ "0000"//flag 0 4bit
+					+ "1110"//global_scope e 4bit
+					+ "01"//event_type notify 01 2bit
+					+ "1111111"//topic_length 7 7bit
+					+ "001"//queue_NO 1 3bit
+					+ ntcMap.get(key);//topic_code 100bit
+			notifyTopicAddrMap.put(key, topicAddr);
+		}
 	}
 
 	public static void initSysTopicMap() {
-		//TODO 用SysTopic.properties初始化管理消息主题和对应的v6地址
-		//TODO 注意有sub,pub这种eventType不一样的
-		ConcurrentHashMap<String, String> res = new ConcurrentHashMap<>();
-		sysTopicMap = res;
+		Properties props = new Properties();
+		String propertiesPath = "SysTopic.properties";
+		try {
+			props.load(new FileInputStream(propertiesPath));
+		} catch (FileNotFoundException e) {
+			System.out.println("找不到系统主题配置文件");
+		} catch (IOException e) {
+			System.out.println("读取系统主题配置文件时发生IOException");
+		}
+
+		Enumeration<?> e = props.propertyNames();
+		while (e.hasMoreElements()) {
+			String key = (String) e.nextElement();
+			int value = Integer.valueOf(props.getProperty(key));
+
+			String topicAddr = "11111111"//prefix ff 8bit
+					+ "0000"//flag 0 4bit
+					+ "1110"//global_scope e 4bit
+					+ "00"//event_type sys 00 2bit
+					+ "0000111"//topic_length 7 7bit
+					+ "001"//queue_NO 1 3bit
+					+ getFullLengthTopicCode(value);//topic_code 100bit
+			sysTopicAddrMap.put(key, topicAddr);
+		}
 	}
 
-	public static ConcurrentHashMap<String, String> getSysTopicMap() {
-		return sysTopicMap;
+	private static String getFullLengthTopicCode(int newTopicCode) {
+		char[] tmp = new char[100];
+		for (int i = 0; i < tmp.length; i++) {
+			tmp[i] = '0';
+		}
+		String s = Integer.toBinaryString(newTopicCode);
+		for (int i = tmp.length - 1, j = s.length() - 1; j >= 0; i--, j--) {
+			tmp[i] = s.charAt(j);
+		}
+		String res = String.valueOf(tmp);
+		return res;
 	}
 
-	public static List<List<String>> getNotifyTopicList() {
-		return notifyTopicList;
+	public static Map<String, String> getSysTopicMap() {
+		return sysTopicAddrMap;
+	}
+
+	public static Map<String, String> getNotifyTopicList() {
+		return notifyTopicAddrMap;
 	}
 
 	public static String getLinkedSwtId(String wsnMac) {
@@ -71,5 +107,10 @@ public class WsnGlobleUtil extends SysInfo {
 			}
 		}
 		return null;
+	}
+
+	public static Map<String, String> getNotifyTopicCodeMap() {
+		//TODO 这部分应该是管理员计算好了，到时直接取过来一个hashMap，韩波
+		return new HashMap<>();
 	}
 }

@@ -18,13 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Config extends SysInfo {
 	public static void configure() {
+		setParams();
+
 		//初始化topic和对应的编码
 		WsnGlobleUtil.initSysTopicMap();
+		WsnGlobleUtil.initNotifyTopicMap();
 
-		//TODO 这里还得把ldap的入口搞好
-//		WsnGlobleUtil.initNotifyTopicList();
-
-		setParams();
 		Host node = new Host(localAddr);
 		localMac = node.getMac();
 		localSwtId = WsnGlobleUtil.getLinkedSwtId(localMac);
@@ -58,6 +57,9 @@ public class Config extends SysInfo {
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
 		outerGroups = new HashSet<>();
+
+		sysTopicAddrMap = new ConcurrentHashMap<>();
+		notifyTopicAddrMap = new ConcurrentHashMap<>();
 
 		localSubTopic = new HashSet<>();
 		groupSubMap = new ConcurrentHashMap<>();

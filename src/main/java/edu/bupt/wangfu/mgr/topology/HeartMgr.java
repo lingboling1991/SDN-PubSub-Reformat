@@ -3,8 +3,8 @@ package edu.bupt.wangfu.mgr.topology;
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.Hello;
-import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.route.RouteMgr;
 import edu.bupt.wangfu.mgr.topology.rcver.HelloReceiver;
 import edu.bupt.wangfu.mgr.topology.rcver.ReHelloReceiver;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
@@ -43,22 +43,9 @@ public class HeartMgr extends SysInfo {
 			for (String out : swt.portSet) {
 				if (!out.equals("LOCAL")) {
 					//这条路径保证outPort进来hello消息可以传回groupCtl
-					List<String> hello = null;
+					List<String> hello = RouteMgr.calRoute(swt.id, localSwtId);
 					//这条路径保证从groupCtl发出来的re_hello都能到达borderSwt
-					List<String> re_hello = null;
-					for (Route r : groupRoutes) {
-						if (r.startSwtId.equals(localSwtId) && r.endSwtId.equals(swt.id)) {
-							re_hello = r.route;
-						} else if (r.startSwtId.equals(swt.id) && r.endSwtId.equals(localSwtId)) {
-							hello = r.route;
-						}
-					}
-					if (re_hello == null) {
-						re_hello = RouteMgr.calRoute(localSwtId, swt.id);
-					}
-					if (hello == null) {
-						hello = RouteMgr.calRoute(swt.id, localSwtId);
-					}
+					List<String> re_hello = RouteMgr.calRoute(localSwtId, swt.id);
 					//这里流表的out设置为portWsn2Swt，是因为只有在groupCtl == localCtl时才调用这个函数
 					RouteMgr.downRouteFlows(re_hello, portWsn2Swt, out, "re_hello", "sys", groupCtl);
 					RouteMgr.downRouteFlows(hello, out, portWsn2Swt, "hello", "sys", groupCtl);
@@ -86,21 +73,8 @@ public class HeartMgr extends SysInfo {
 			for (Switch swt : outSwitchs) {
 				for (String out : swt.portSet) {
 					if (!out.equals("LOCAL")) {
-						List<String> ctl2out = null;
-						List<String> out2ctl = null;
-						for (Route r : groupRoutes) {
-							if (r.startSwtId.equals(localSwtId) && r.endSwtId.equals(swt.id)) {
-								ctl2out = r.route;
-							} else if (r.startSwtId.equals(swt.id) && r.endSwtId.equals(localSwtId)) {
-								out2ctl = r.route;
-							}
-						}
-						if (ctl2out == null) {
-							ctl2out = RouteMgr.calRoute(localSwtId, swt.id);
-						}
-						if (out2ctl == null) {
-							out2ctl = RouteMgr.calRoute(swt.id, localSwtId);
-						}
+						List<String> ctl2out = RouteMgr.calRoute(localSwtId, swt.id);
+						List<String> out2ctl = RouteMgr.calRoute(swt.id, localSwtId);
 						List<Flow> c2o = RouteMgr.downRouteFlows(ctl2out, portWsn2Swt, out, "hello", "sys", groupCtl);
 						List<Flow> o2c = RouteMgr.downRouteFlows(out2ctl, out, portWsn2Swt, "re_hello", "sys", groupCtl);
 
