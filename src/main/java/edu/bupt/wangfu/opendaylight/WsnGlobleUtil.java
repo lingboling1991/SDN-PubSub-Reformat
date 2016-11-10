@@ -1,7 +1,9 @@
 package edu.bupt.wangfu.opendaylight;
 
 
+import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.opendaylight.rcver.AdminReceiver;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -9,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -17,21 +18,14 @@ import java.util.Properties;
  * Created by root on 15-10-6.
  */
 public class WsnGlobleUtil extends SysInfo {
-	public static void main(String[] args) {
-	}
-
 	public static void initNotifyTopicMap() {
-		Map<String, String> ntcMap = getNotifyTopicCodeMap();
-		for (String key : ntcMap.keySet()) {
-			String topicAddr = "11111111"//prefix ff 8bit
-					+ "0000"//flag 0 4bit
-					+ "1110"//global_scope e 4bit
-					+ "01"//event_type notify 01 2bit
-					+ "1111111"//topic_length 7 7bit
-					+ "001"//queue_NO 1 3bit
-					+ ntcMap.get(key);//topic_code 100bit
-			notifyTopicAddrMap.put(key, topicAddr);
-		}
+		Flow fromAdmin = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "admin", "sys", 1, 10);
+		FlowHandler.downFlow(groupCtl, fromAdmin, "add");
+		Flow toAdmin = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "admin", "sys", 1, 10);
+		FlowHandler.downFlow(groupCtl, toAdmin, "add");
+
+		//TODO 这部分应该是管理员计算好了，到时直接取过来一个hashMap，韩波
+		new Thread(new AdminReceiver()).start();
 	}
 
 	public static void initSysTopicMap() {
@@ -82,7 +76,7 @@ public class WsnGlobleUtil extends SysInfo {
 		return notifyTopicAddrMap;
 	}
 
-	public static String getLinkedSwtId(String wsnMac) {
+	public static String getLinkedSwtId(String hostMac) {
 		//返回wsn程序所在主机所连Switch的odl_id
 		String url = groupCtl.url + "/restconf/operational/network-topology:network-topology/";
 		String body = RestProcess.doClientGet(url);
@@ -94,7 +88,7 @@ public class WsnGlobleUtil extends SysInfo {
 			JSONArray link = topology.getJSONObject(i).getJSONArray("link");
 			for (int j = 0; j < link.length(); j++) {
 				String link_id = link.getJSONObject(j).getString("link-id");
-				if (link_id.contains(wsnMac)) {
+				if (link_id.contains(hostMac)) {
 					String[] ps = link_id.split("/");
 					for (String p : ps) {
 						if (p.contains("openflow")) {
@@ -107,10 +101,5 @@ public class WsnGlobleUtil extends SysInfo {
 			}
 		}
 		return null;
-	}
-
-	public static Map<String, String> getNotifyTopicCodeMap() {
-		//TODO 这部分应该是管理员计算好了，到时直接取过来一个hashMap，韩波
-		return new HashMap<>();
 	}
 }

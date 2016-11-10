@@ -4,7 +4,9 @@ import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Flow;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by lenovo on 2016-5-18.
@@ -95,19 +97,30 @@ public class FlowHandler extends SysInfo {
 
 	public static boolean deleteFlow(Controller controller, Flow flow) {
 		String url = controller.url + "/restconf/config/opendaylight-inventory:nodes/node/openflow:" + localSwtId
-				+ "/table/" + flow.getTable_id() + "/flow/" + flow.getFlow_id();
+				+ "/table/" + flow.table_id + "/flow/" + flow.flow_id;
 		return RestProcess.doClientDelete(url).equals("200");
 	}
 
 	public static boolean downFlow(Controller controller, Flow flow, String action) {
 		//TODO 这里还要考虑下发到具体哪个流表里，看要执行的动作是 更新流表项 还是 添加新流表项
 		// action == "Add" "update"
-		return RestProcess.doClientPost(controller.url, flow.getJsonContent()).get(0).equals("200");
+		return RestProcess.doClientPost(controller.url, flow.jsonContent).get(0).equals("200");
 	}
 
 	//TODO 生成函数找韩波
 	//这里使用单例模式是为了方便计数flowcount，每条流表的编号必须不一样
 	public Flow generateFlow(String swtId, String in, String out, String topic, String topicType, int t_id, int pri) {
+		//将route中的每一段flow都添加到set中，保证后面不用重复下发，控制flowcount
+		Set<Flow> topicFlowSet = notifyFlows.get(topic) == null ? new HashSet<Flow>() : notifyFlows.get(topic);
+		for (Flow flow : topicFlowSet) {
+			if (flow.swtId.equals(swtId)
+					&& flow.in.equals(in)
+					&& flow.out.equals(out)
+					&& flow.topic.equals(topic)) {
+				return flow;
+			}
+		}
+		//之前没生成过这条流表，需要重新生成
 		String v6Addr;
 		if (topicType.equals("sys")) {
 			v6Addr = sysTopicAddrMap.get(topic);
@@ -120,6 +133,57 @@ public class FlowHandler extends SysInfo {
 		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
 
 		Flow flow = new Flow();
+		flow.swtId = swtId;
+		flow.in = in;
+		flow.out = out;
+		flow.topic = topic;
+		flow.table_id = t_id;
+		flow.flow_id = flowcount;
+		flow.priority = pri;
+		//生成后，将其添加到notifyFlows里，以备后面调用查看
+		topicFlowSet.add(flow);
+		notifyFlows.put(topic, topicFlowSet);
+
 		return flow;
 	}
+
+	public Flow generateFlow(String swtId, String out, String topic, String topicType, int t_id, int pri) {
+		String v6Addr;
+		if (topicType.equals("sys")) {
+			v6Addr = sysTopicAddrMap.get(topic);
+		} else if (topicType.equals("notify")) {
+			v6Addr = notifyTopicAddrMap.get(topic);
+		}
+
+		flowcount++;
+		String table_id = String.valueOf(t_id);
+		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
+
+		Flow flow = new Flow();
+		flow.swtId = swtId;
+		flow.out = out;
+		flow.topic = topic;
+		flow.table_id = t_id;
+		flow.flow_id = flowcount;
+		flow.priority = pri;
+
+		return flow;
+	}
+
+	//生成向groupCtl发送REST请求的专用流表
+	public Flow generateRestFlow(String swtId, String out, int t_id, int pri) {
+		flowcount++;
+		String table_id = String.valueOf(t_id);
+		String priority = String.valueOf(pri);//TODO 优先级是数字越大越靠前吗？
+
+		Flow flow = new Flow();
+		flow.swtId = swtId;
+		flow.out = out;
+		flow.table_id = t_id;
+		flow.flow_id = flowcount;
+		flow.priority = pri;
+
+		return flow;
+	}
+
 }

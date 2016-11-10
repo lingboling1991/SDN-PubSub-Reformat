@@ -6,8 +6,8 @@ import edu.bupt.wangfu.info.device.Host;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.route.RouteMgr;
-import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
+import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
 import edu.bupt.wangfu.opendaylight.FlowHandler;
 import edu.bupt.wangfu.opendaylight.RestProcess;
 import org.json.JSONArray;
@@ -29,7 +29,7 @@ public class GroupMgr extends SysInfo {
 		setMaps(new Controller("10.108.165.188:8181"));
 	}
 
-	public static void initGroup()  {
+	public static void initGroup() {
 		refreshTimer.schedule(refreshTask, 0, refreshPeriod);
 	}
 
@@ -40,7 +40,8 @@ public class GroupMgr extends SysInfo {
 		//测试用
 		HashMap<String, Host> hostMap = new HashMap<>();
 		HashMap<String, Switch> switchMap = new HashMap<>();
-		HashSet<Edge> edges = new HashSet<>();
+		HashSet<Edge> groupEdges = new HashSet<>();
+		HashSet<Switch> outSwitchs = new HashSet<>();
 		//结束
 
 		String body = RestProcess.doClientGet(url);
@@ -51,14 +52,16 @@ public class GroupMgr extends SysInfo {
 		for (int j = 0; j < nodes.length(); j++) {
 			String node_id = nodes.getJSONObject(j).getString("node-id");
 			if (node_id.contains("host")) {
-				String swtId = nodes.getJSONObject(j).getJSONArray("host-tracker-service:attachment-points").getJSONObject(0).getString("tp-id");
-				swtId = swtId.substring(9, swtId.length() - 2);
+				String swt = nodes.getJSONObject(j).getJSONArray("host-tracker-service:attachment-points").getJSONObject(0).getString("tp-id");
+				String port = swt.split(":")[2];
+				String swtId = swt.split(":")[1];
 				String ip = nodes.getJSONObject(j).getJSONArray("host-tracker-service:addresses").getJSONObject(0).getString("ip");
 				String mac = node_id.substring(5, node_id.length());
 
 				Host host = new Host(ip);
-				host.setMac(mac);
-				host.swt = new Switch(swtId);
+				host.mac = mac;
+				host.swtId = swtId;
+				host.port = port;
 				hostMap.put(mac, host);
 			} else if (node_id.contains("openflow")) {
 				String swtId = node_id.split(":")[1];
@@ -121,7 +124,7 @@ public class GroupMgr extends SysInfo {
 					e.setFinish(f[1]);
 					e.finishPort = f[2];
 
-					edges.add(e);
+					groupEdges.add(e);
 				}
 			}
 		}
@@ -137,18 +140,17 @@ public class GroupMgr extends SysInfo {
 	}
 
 	//groupCtl下发全集群各swt上flood流表
+	//可以不匹配端口，直接匹配v4_dst和v6_dst(topic)
 	private static void downRepFlow() {
 		for (Switch swt : switchMap.values()) {
 			String id = swt.id;
-			for (String p : swt.neighbors.keySet()) {
-				Flow fromGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
-//				TODO fromGroupCtlFlow.setV4Src(localAddr);
-				FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
+			Flow fromGroupCtlFlow = FlowHandler.getInstance().generateRestFlow(id, "flood", 1, 10);
+//			TODO fromGroupCtlFlow.setV4Src(localAddr);
+			FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
 
-				Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(id, p, "flood", "rest", "sys", 1, 10);
-//				TODO toGroupCtlFlow.setV4Dst(localAddr);
-				FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
-			}
+			Flow toGroupCtlFlow = FlowHandler.getInstance().generateRestFlow(id, "flood", 1, 10);
+//			TODO toGroupCtlFlow.setV4Dst(localAddr);
+			FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
 		}
 	}
 
@@ -171,6 +173,7 @@ public class GroupMgr extends SysInfo {
 					e.printStackTrace();
 				}
 			SubPubMgr.downSubPubFlow();
+			//TODO 这里应该加上，如果有swt消失，那么这个swt上的所有pub和sub都作废
 			RouteMgr.downSyncGroupRouteFlow();
 			//下发访问groupCtl的flood流表
 			if (localCtl.equals(groupCtl)) {

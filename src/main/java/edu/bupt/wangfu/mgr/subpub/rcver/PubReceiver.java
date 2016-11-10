@@ -1,7 +1,9 @@
 package edu.bupt.wangfu.mgr.subpub.rcver;
 
+import edu.bupt.wangfu.info.device.OuterGroup;
 import edu.bupt.wangfu.info.msg.SubPubInfo;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.route.RouteMgr;
 import edu.bupt.wangfu.mgr.subpub.Action;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -39,11 +41,13 @@ public class PubReceiver extends SysInfo implements Runnable {
 			if (np.group.equals(groupName)) {
 				if (np.action.equals(Action.PUB)) {
 					Set<String> groupPub = groupPubMap.get(np.topic) == null ? new HashSet<String>() : groupPubMap.get(np.topic);
-					groupPub.add(np.swtId);
+					groupPub.add(np.swtId + ":" + np.port);
 					groupPubMap.put(np.topic, groupPub);
+
+					RouteMgr.newPuber(np.swtId, np.port, np.topic);
 				} else if (np.action.equals(Action.UNPUB)) {
 					Set<String> groupPub = groupPubMap.get(np.topic);
-					groupPub.remove(np.swtId);
+					groupPub.remove(np.swtId + ":" + np.port);
 					groupPubMap.put(np.topic, groupPub);
 				}
 			} else {
@@ -51,6 +55,15 @@ public class PubReceiver extends SysInfo implements Runnable {
 					Set<String> outerPub = outerPubMap.get(np.topic) == null ? new HashSet<String>() : outerPubMap.get(np.topic);
 					outerPub.add(np.group);
 					outerPubMap.put(np.topic, outerPub);
+
+					OuterGroup outerGroup = null;
+					for (OuterGroup og : outerGroups) {
+						if (og.outerGroupName.equals(np.group)) {
+							outerGroup = og;
+							break;
+						}
+					}
+					RouteMgr.newPuber(outerGroup.srcBorderSwtId, outerGroup.srcOutPort, np.topic);
 				} else if (np.action.equals(Action.UNPUB)) {
 					Set<String> outerPub = outerPubMap.get(np.topic);
 					outerPub.remove(np.group);

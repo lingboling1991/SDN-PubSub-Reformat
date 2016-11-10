@@ -1,7 +1,5 @@
 package edu.bupt.wangfu.info.device;
 
-import java.util.Set;
-
 /**
  * Created by lenovo on 2016-10-31.
  */
@@ -13,7 +11,4 @@ public class OuterGroup extends DevInfo {
 
 	public String dstBorderSwtId;//outerGroup这边，边界swtId
 	public String dstOutPort;
-
-	public Set<String> subTopics;
-	public Set<String> pubTopics;
 }

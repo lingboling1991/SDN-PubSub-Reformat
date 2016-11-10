@@ -37,13 +37,27 @@ public class RouteMgr extends SysInfo {
 		return route;
 	}
 
-	public static void calGraph(Set<Switch> subers, Set<Switch> pubers) {
-		//TODO ！！！张冠群算法，计算发布者订阅者组成的最小连通图，以及转发的消息方向
-		for (Switch puber : pubers) {
-			for (Switch suber : subers) {
-				List<String> r = calRoute(puber.id, suber.id);
+	public static void newSuber(String suberSwtId, String out, String topic) {
+		if (groupPubMap.get(topic) == null)
+			return;
+		Set<String> pubers = groupPubMap.get(topic);
+		for (String puber : pubers) {
+			String puberSwtId = puber.split(":")[0];
+			String puberPort = puber.split(":")[1];
 
-			}
+			List<String> r = calRoute(puberSwtId, suberSwtId);
+			downRouteFlows(r, puberPort, out, topic, "notify", groupCtl);
+		}
+	}
+
+	public static void newPuber(String puberSwtId, String in, String topic) {
+		Set<String> subers = groupSubMap.get(topic);
+		for (String suber : subers) {
+			String suberSwtId = suber.split(":")[0];
+			String suberPort = suber.split(":")[1];
+
+			List<String> r = calRoute(puberSwtId, suberSwtId);
+			downRouteFlows(r, in, suberPort, topic, "notify", groupCtl);
 		}
 	}
 
@@ -54,20 +68,27 @@ public class RouteMgr extends SysInfo {
 
 	public static List<Flow> downRouteFlows(List<String> route, String in, String out, String topic, String topicType, Controller ctl) {
 		List<Flow> routeFlows = new ArrayList<>();
-		for (int i = 0; i < route.size() - 1; i++) {
-			Switch pre = switchMap.get(route.get(i - 1));
-			Switch cur = switchMap.get(route.get(i));
-			Switch next = switchMap.get(route.get(i + 1));
+		for (int i = 0; i < route.size(); i++) {
+			Switch pre;
+			Switch cur;
+			Switch next;
 
 			String inPort = (i == 0 ? in : null);
 			String outPort = (i == route.size() - 1 ? out : null);
 
-			for (Edge e : edges) {
-				if (i != 0 && e.getStart().equals(pre.id) && e.getFinish().equals(cur.id))
-					inPort = e.finishPort;
-
-				if (i != route.size() - 1 && e.getStart().equals(cur.id) && e.getFinish().equals(next.id))
-					outPort = e.startPort;
+			for (Edge e : groupEdges) {
+				if (i != 0) {
+					pre = switchMap.get(route.get(i - 1));
+					cur = switchMap.get(route.get(i));
+					if (e.getStart().equals(pre.id) && e.getFinish().equals(cur.id))
+						inPort = e.finishPort;
+				}
+				if (i != route.size() - 1) {
+					cur = switchMap.get(route.get(i));
+					next = switchMap.get(route.get(i + 1));
+					if (e.getStart().equals(cur.id) && e.getFinish().equals(next.id))
+						outPort = e.startPort;
+				}
 			}
 			Flow flow = FlowHandler.getInstance().generateFlow(route.get(i), inPort, outPort, topic, topicType, 1, 10);
 			routeFlows.add(flow);

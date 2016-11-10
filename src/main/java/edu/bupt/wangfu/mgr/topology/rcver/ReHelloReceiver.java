@@ -31,7 +31,7 @@ public class ReHelloReceiver extends SysInfo implements Runnable {
 		g.srcOutPort = re_hello.startOutPort;
 		g.dstBorderSwtId = re_hello.endBorderSwtId;
 		g.dstOutPort = re_hello.endOutPort;
-		outerGroups.add(g);
+		outerGroups.add(g);//TODO 同步LSDB，其他集群的连接情况
 
 		handler = new MultiHandler(uPort, "hello", "sys");
 		handler.v6Send(re_hello);//因为现在还在HeartMgr.SendTask()的sleep()中，因此直接发送就可以

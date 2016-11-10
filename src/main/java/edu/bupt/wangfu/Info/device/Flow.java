@@ -2,14 +2,19 @@ package edu.bupt.wangfu.info.device;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 
-public class Flow {
+public class Flow implements Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public int flow_id;
 	public int table_id;
+	public int priority;
+
+	public String topic;
+	public String swtId;
+	public String in;
+	public String out;
 
 	public JSONObject jsonContent;
 	public String xmlContent;

@@ -10,8 +10,8 @@ import java.net.UnknownHostException;
  */
 public class Host extends DevInfo {
 	public String ip;
-	public Switch swt;
-//	public Map<String, List<String>> subers = new ConcurrentHashMap<>();
+	public String swtId;
+	public String port;//swt上和这个host连接的端口的端口号
 
 	public Host() {
 	}
@@ -23,14 +23,6 @@ public class Host extends DevInfo {
 	public static void main(String[] args) {
 		Host x = new Host("10.108.166.15");
 		System.out.println(x.getMac());
-	}
-
-	public String getIpAddr() {
-		return ip;
-	}
-
-	public void setIpAddr(String ip) {
-		this.ip = ip;
 	}
 
 	@Override

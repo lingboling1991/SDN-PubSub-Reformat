@@ -9,6 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,13 +21,13 @@ public class Config extends SysInfo {
 	public static void configure() {
 		setParams();
 
-		//初始化topic和对应的编码
-		WsnGlobleUtil.initSysTopicMap();
-		WsnGlobleUtil.initNotifyTopicMap();
-
 		Host node = new Host(localAddr);
 		localMac = node.getMac();
 		localSwtId = WsnGlobleUtil.getLinkedSwtId(localMac);
+
+		//初始化topic和对应的编码
+		WsnGlobleUtil.initSysTopicMap();
+		WsnGlobleUtil.initNotifyTopicMap();//TODO 下流表，向管理员请求编码后的ldap
 	}
 
 	private static void setParams() {
@@ -52,7 +53,7 @@ public class Config extends SysInfo {
 		checkSplitPeriod = Long.parseLong(props.getProperty("checkSplitPeriod"));
 		splitThreshold = Integer.parseInt(props.getProperty("splitThreshold"));
 
-		edges = new HashSet<>();
+		groupEdges = new HashSet<>();
 		outSwitchs = new HashSet<>();
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
@@ -68,6 +69,7 @@ public class Config extends SysInfo {
 		outerPubMap = new ConcurrentHashMap<>();
 		joinedSubTopics = new HashSet<>();
 		joinedUnsubTopics = new HashSet<>();
+		notifyFlows = new HashMap<>();
 
 		localCtl = new Controller(localAddr);
 		groupRoutes = Collections.synchronizedSet(new HashSet<Route>());

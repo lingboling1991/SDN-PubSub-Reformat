@@ -1,9 +1,6 @@
 package edu.bupt.wangfu.mgr.base;
 
-import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.device.Host;
-import edu.bupt.wangfu.info.device.OuterGroup;
-import edu.bupt.wangfu.info.device.Switch;
+import edu.bupt.wangfu.info.device.*;
 import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
 
@@ -27,7 +24,7 @@ public abstract class SysInfo {
 	//拓扑
 	public static String localSwtId;//wsn连接的switch的id
 	public static String portWsn2Swt;//wsn连接switch，switch上的的端口
-	public static Set<Edge> edges;//集群内所有swt连接的边的集合
+	public static Set<Edge> groupEdges;//集群内所有swt连接的边的集合
 	public static Set<Switch> outSwitchs; //本集群所有拥有对外端口的swt的集合
 	public static Set<Route> groupRoutes;//集群内所有计算过的路径
 	public static Map<String, Host> hostMap;//当前集群所有host，key是mac
@@ -38,13 +35,13 @@ public abstract class SysInfo {
 	public static Map<String, String> sysTopicAddrMap;//系统消息对应的编码
 	//订阅表
 	public static Set<String> localSubTopic;//本地订阅表，value是本地的订阅主题
-	public static Map<String, Set<String>> groupSubMap;//本集群的订阅信息，key是topic，value是swtId的集合
+	public static Map<String, Set<String>> groupSubMap;//本集群的订阅信息，key是topic，value是swtId:port的集合
 	public static Map<String, Set<String>> outerSubMap;//全网的订阅信息，key是topic，value是groupName的集合
-	public static Map<String, Set<String>> groupPubMap;//本集群的发布信息，key是topic，value是swtId的集合
+	public static Map<String, Set<String>> groupPubMap;//本集群的发布信息，key是topic，value是swtId:port的集合
 	public static Map<String, Set<String>> outerPubMap;//全网的发布信息，key是topic，value是groupName的集合
 	public static Set<String> joinedSubTopics;//因聚合产生的订阅主题，它和unitedUnsubTopics都是为聚合做准备
 	public static Set<String> joinedUnsubTopics;//因聚合而取消的订阅
-	public static Set<Edge>
+	public static Map<String, Set<Flow>> notifyFlows;//key订阅的主题，value是这个主题对应的所有流表
 	//管理员属性
 	public static String adminAddr;//管理者的地址
 	public static int adminPort;//管理者的地址

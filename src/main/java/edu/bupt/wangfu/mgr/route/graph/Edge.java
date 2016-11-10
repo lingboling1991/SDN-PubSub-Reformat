@@ -1,10 +1,11 @@
 package edu.bupt.wangfu.mgr.route.graph;
 
 public class Edge implements Comparable {
-	private String start;
 	public String startPort;
-	private String finish;
 	public String finishPort;
+	public String topic;
+	private String start;
+	private String finish;
 	private int value;
 
 	public Edge() {

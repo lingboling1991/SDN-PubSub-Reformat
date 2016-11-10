@@ -73,6 +73,7 @@ public class HeartMgr extends SysInfo {
 			for (Switch swt : outSwitchs) {
 				for (String out : swt.portSet) {
 					if (!out.equals("LOCAL")) {
+						//TODO 第一次获得outSwt下发流表
 						List<String> ctl2out = RouteMgr.calRoute(localSwtId, swt.id);
 						List<String> out2ctl = RouteMgr.calRoute(swt.id, localSwtId);
 						List<Flow> c2o = RouteMgr.downRouteFlows(ctl2out, portWsn2Swt, out, "hello", "sys", groupCtl);

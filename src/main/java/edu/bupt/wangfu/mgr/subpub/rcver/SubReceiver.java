@@ -1,7 +1,9 @@
 package edu.bupt.wangfu.mgr.subpub.rcver;
 
+import edu.bupt.wangfu.info.device.OuterGroup;
 import edu.bupt.wangfu.info.msg.SubPubInfo;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.route.RouteMgr;
 import edu.bupt.wangfu.mgr.subpub.Action;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -39,11 +41,13 @@ public class SubReceiver extends SysInfo implements Runnable {
 			if (ns.group.equals(groupName)) {//本集群内节点产生的订阅
 				if (ns.action.equals(Action.SUB)) {
 					Set<String> groupSub = groupSubMap.get(ns.topic) == null ? new HashSet<String>() : groupSubMap.get(ns.topic);
-					groupSub.add(ns.swtId);
+					groupSub.add(ns.swtId + ":" + ns.port);
 					groupSubMap.put(ns.topic, groupSub);
+
+					RouteMgr.newSuber(ns.swtId, ns.port, ns.topic);
 				} else if (ns.action.equals(Action.UNSUB)) {
 					Set<String> groupSub = groupSubMap.get(ns.topic);
-					groupSub.remove(ns.swtId);
+					groupSub.remove(ns.swtId + ":" + ns.port);
 					groupSubMap.put(ns.topic, groupSub);
 				}
 			} else {//邻居集群产生的订阅
@@ -51,13 +55,21 @@ public class SubReceiver extends SysInfo implements Runnable {
 					Set<String> outerSub = outerSubMap.get(ns.topic) == null ? new HashSet<String>() : outerSubMap.get(ns.topic);
 					outerSub.add(ns.group);
 					outerSubMap.put(ns.topic, outerSub);
+
+					OuterGroup outerGroup = null;
+					for (OuterGroup og : outerGroups) {
+						if (og.outerGroupName.equals(ns.group)) {
+							outerGroup = og;
+							break;
+						}
+					}
+					RouteMgr.newSuber(outerGroup.srcBorderSwtId, outerGroup.srcOutPort, ns.topic);
 				} else if (ns.action.equals(Action.UNSUB)) {
 					Set<String> outerSub = outerSubMap.get(ns.topic);
 					outerSub.remove(ns.group);
 					outerSubMap.put(ns.topic, outerSub);
 				}
 			}
-
 
 		}
 	}

@@ -51,9 +51,9 @@ public class SubPubMgr extends SysInfo {
 			localSubTopic.add(cur);
 			if (joinedSubTopics.contains(cur))
 				joinedSubTopics.remove(cur);
-			//更新本集群订阅
+			//更新集群订阅
 			Set<String> groupSub = groupSubMap.get(cur) == null ? new HashSet<String>() : groupSubMap.get(cur);
-			groupSub.add(localSwtId);
+			groupSub.add(localSwtId + ":" + portWsn2Swt);
 			groupSubMap.put(topic, groupSub);
 			//全网广播
 			spreadSPInfo(cur, "sub", Action.SUB);
@@ -86,14 +86,19 @@ public class SubPubMgr extends SysInfo {
 	}
 
 	public static boolean unsubscribe(String topic) {
-		localSubTopic.remove(topic);
 		if (joinedSubTopics.contains(topic))//若这个订阅是聚合而成的，那么不能取消，因为并不是真实订阅
 			return false;
 		if (groupSubMap.get(topic) == null)
 			return false;//本地没有这个订阅
+
+		localSubTopic.remove(topic);
+
 		Set<String> groupSub = groupSubMap.get(topic);
-		groupSub.remove(localSwtId);
+		groupSub.remove(localSwtId + ":" + portWsn2Swt);
 		groupSubMap.put(topic, groupSub);
+
+		//TODO 删除本地交换机上的这条进流表,outport==portWsn2Swt,topic==topic
+
 		spreadSPInfo(topic, "sub", Action.UNSUB);
 
 		return true;
@@ -106,7 +111,7 @@ public class SubPubMgr extends SysInfo {
 		if (groupPub.contains(localSwtId))
 			return false;
 
-		groupPub.add(localSwtId);
+		groupPub.add(localSwtId + ":" + portWsn2Swt);
 		groupPubMap.put(topic, groupPub);
 		//全网广播
 		spreadSPInfo(topic, "pub", Action.PUB);
@@ -116,9 +121,12 @@ public class SubPubMgr extends SysInfo {
 	public static boolean unPublish(String topic) {
 		if (groupPubMap.get(topic) == null)
 			return false;
+
 		Set<String> groupPub = groupPubMap.get(topic);
-		groupPub.remove(localSwtId);
+		groupPub.remove(localSwtId + ":" + portWsn2Swt);
 		groupPubMap.put(topic, groupPub);
+
+		//TODO 删除本地的这条发出流表,inport==portWsn2Swt,topic==topic
 
 		spreadSPInfo(topic, "pub", Action.UNPUB);
 
