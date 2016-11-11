@@ -58,7 +58,7 @@ public class Config extends SysInfo {
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
 		neighborGroupLinks = new HashSet<>();
-		allGroups = new HashSet<>();
+		allGroups = new ConcurrentHashMap<>();
 
 		sysTopicAddrMap = new ConcurrentHashMap<>();
 		notifyTopicAddrMap = new ConcurrentHashMap<>();
