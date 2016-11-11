@@ -6,7 +6,7 @@ import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
-import edu.bupt.wangfu.opendaylight.FlowHandler;
+import edu.bupt.wangfu.opendaylight.FlowUtil;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * Created by LCW on 2016-7-16.
  */
-public class RouteMgr extends SysInfo {
+public class RouteUtil extends SysInfo {
 	public static List<String> calRoute(String startSwtId, String endSwtId) {
 		for (Route r : groupRoutes) {
 			if (r.startSwtId.equals(startSwtId) && r.endSwtId.equals(endSwtId)) {
@@ -90,28 +90,28 @@ public class RouteMgr extends SysInfo {
 						outPort = e.startPort;
 				}
 			}
-			Flow flow = FlowHandler.getInstance().generateFlow(route.get(i), inPort, outPort, topic, topicType, 1, 10);
+			Flow flow = FlowUtil.getInstance().generateFlow(route.get(i), inPort, outPort, topic, topicType, 1, 10);
 			routeFlows.add(flow);
-			FlowHandler.downFlow(ctl, flow, "add");
+			FlowUtil.downFlow(ctl, flow, "add");
 		}
 		return routeFlows;
 	}
 
 	public static void delRouteFlows(List<Flow> routeFlows) {
 		for (Flow flow : routeFlows) {
-			FlowHandler.deleteFlow(groupCtl, flow);
+			FlowUtil.deleteFlow(groupCtl, flow);
 		}
 	}
 
 	//下发同步流表，使wsn计算出来的新route可以全网同步
 	public static void downSyncGroupRouteFlow() {
-		Flow floodOutFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "route", "sys", 1, 10);
-		FlowHandler.downFlow(localCtl, floodOutFlow, "add");
+		Flow floodOutFlow = FlowUtil.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "route", "sys", 1, 10);
+		FlowUtil.downFlow(groupCtl, floodOutFlow, "add");
 
 		for (Switch swt : switchMap.values()) {
 			for (String p : swt.neighbors.keySet()) {
-				Flow floodInFlow = FlowHandler.getInstance().generateFlow(localSwtId, p, "flood", "route", "sys", 1, 10);
-				FlowHandler.downFlow(localCtl, floodInFlow, "add");
+				Flow floodInFlow = FlowUtil.getInstance().generateFlow(localSwtId, p, "flood", "route", "sys", 1, 10);
+				FlowUtil.downFlow(groupCtl, floodInFlow, "add");
 			}
 		}
 	}

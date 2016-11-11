@@ -1,14 +1,12 @@
 package edu.bupt.wangfu.mgr.topology;
 
-import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.device.Flow;
-import edu.bupt.wangfu.info.device.Host;
-import edu.bupt.wangfu.info.device.Switch;
+import edu.bupt.wangfu.info.device.*;
 import edu.bupt.wangfu.mgr.base.SysInfo;
-import edu.bupt.wangfu.mgr.route.RouteMgr;
+import edu.bupt.wangfu.mgr.route.RouteUtil;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
 import edu.bupt.wangfu.mgr.subpub.SubPubMgr;
-import edu.bupt.wangfu.opendaylight.FlowHandler;
+import edu.bupt.wangfu.opendaylight.FlowUtil;
+import edu.bupt.wangfu.opendaylight.MultiHandler;
 import edu.bupt.wangfu.opendaylight.RestProcess;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,7 +19,7 @@ import java.util.TimerTask;
 /**
  * Created by lenovo on 2016-10-16.
  */
-public class GroupMgr extends SysInfo {
+public class GroupUtil extends SysInfo {
 	private static RefreshGroup refreshTask = new RefreshGroup();
 	private static Timer refreshTimer = new Timer();
 
@@ -140,25 +138,30 @@ public class GroupMgr extends SysInfo {
 	}
 
 	//groupCtl下发全集群各swt上flood流表
-	//可以不匹配端口，直接匹配v4_dst和v6_dst(topic)
 	private static void downRepFlow() {
 		for (Switch swt : switchMap.values()) {
 			String id = swt.id;
-			Flow fromGroupCtlFlow = FlowHandler.getInstance().generateRestFlow(id, "flood", 1, 10);
+			//可以不匹配端口，直接匹配v4_dst和v6_dst(topic)
+			Flow fromGroupCtlFlow = FlowUtil.getInstance().generateRestFlow(id, "flood", 1, 10);
 //			TODO fromGroupCtlFlow.setV4Src(localAddr);
-			FlowHandler.downFlow(localCtl, fromGroupCtlFlow, "add");
+			FlowUtil.downFlow(groupCtl, fromGroupCtlFlow, "add");
 
-			Flow toGroupCtlFlow = FlowHandler.getInstance().generateRestFlow(id, "flood", 1, 10);
+			Flow toGroupCtlFlow = FlowUtil.getInstance().generateRestFlow(id, "flood", 1, 10);
 //			TODO toGroupCtlFlow.setV4Dst(localAddr);
-			FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
+			FlowUtil.downFlow(groupCtl, toGroupCtlFlow, "add");
 		}
 	}
 
 	//localCtl下发本地swt上flood流表
 	private static void downRegFlow() {
-		Flow toGroupCtlFlow = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
+		Flow toGroupCtlFlow = FlowUtil.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "rest", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
 //		TODO fromGroupCtlFlow.setV4Dst(groupCtl.url);
-		FlowHandler.downFlow(localCtl, toGroupCtlFlow, "add");
+		FlowUtil.downFlow(groupCtl, toGroupCtlFlow, "add");
+	}
+
+	public static void spreadNewLSA(Group g) {
+		MultiHandler handler = new MultiHandler(uPort, "lsa", "sys");
+		handler.v6Send(g);
 	}
 
 	//更新group拓扑信息
@@ -166,20 +169,29 @@ public class GroupMgr extends SysInfo {
 		@Override
 		public void run() {
 			setMaps(groupCtl);
-			while (switchMap.size() == 0)
+			while (switchMap.size() == 0) {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+			}
+			downLSAFlow();
 			SubPubMgr.downSubPubFlow();
 			//TODO 这里应该加上，如果有swt消失，那么这个swt上的所有pub和sub都作废
-			RouteMgr.downSyncGroupRouteFlow();
+			RouteUtil.downSyncGroupRouteFlow();
 			//下发访问groupCtl的flood流表
 			if (localCtl.equals(groupCtl)) {
 				downRepFlow();
 			} else {
 				downRegFlow();
+			}
+		}
+
+		private void downLSAFlow() {
+			for (Switch swt : switchMap.values()) {
+				Flow floodFlow = FlowUtil.getInstance().generateFlow(swt.id, "flood", "lsa", "sys", 1, 10);//TODO 优先级是越大越靠后吗？
+				FlowUtil.downFlow(groupCtl, floodFlow, "add");
 			}
 		}
 	}

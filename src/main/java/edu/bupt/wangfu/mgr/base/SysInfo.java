@@ -29,9 +29,10 @@ public abstract class SysInfo {
 	public static Set<Route> groupRoutes;//集群内所有计算过的路径
 	public static Map<String, Host> hostMap;//当前集群所有host，key是mac
 	public static Map<String, Switch> switchMap;//当前集群所有switch，key是id
-	public static Set<OuterGroup> outerGroups;//本集群和其他集群的连接情况
+	public static Set<GroupLink> neighborGroupLinks;//本集群与其邻居集群的连接情况
+	public static Map<String, Group> allGroups;//当前网络中所有集群的连接情况，key是groupName
 	//订阅信息
-	public static Map<String, String> notifyTopicAddrMap;//主题树-->编码树
+	public static Map<String, String> notifyTopicAddrMap;//主题树-->编码树，key是主题名，value是对应这个主题的v6地址
 	public static Map<String, String> sysTopicAddrMap;//系统消息对应的编码
 	//订阅表
 	public static Set<String> localSubTopic;//本地订阅表，value是本地的订阅主题
@@ -46,6 +47,7 @@ public abstract class SysInfo {
 	public static String adminAddr;//管理者的地址
 	public static int adminPort;//管理者的地址
 	//心跳管理器
+	public static long helloTaskPeriod;//hello任务的执行周期
 	public static long reHelloPeriod;//失效阀值的缺省值
 	public static long helloPeriod;//发送hello的频率，这个间隔内应该足够完成re_hello等动作
 	public static long refreshPeriod;//刷新集群内拓扑的频率

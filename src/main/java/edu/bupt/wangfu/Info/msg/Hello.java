@@ -1,6 +1,9 @@
 package edu.bupt.wangfu.info.msg;
 
+import edu.bupt.wangfu.info.device.Group;
+
 import java.io.Serializable;
+import java.util.Map;
 
 public class Hello implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -15,4 +18,7 @@ public class Hello implements Serializable {
 	public String endOutPort;//记录这条消息对标对面的哪个端口
 
 	public long reHelloPeriod;//判定节点失效的时间间隔
+
+	public Map<String, Group> allGroups;//当前已知的所有集群的信息，key是groupName
+
 }

@@ -11,17 +11,17 @@ import java.util.Set;
 /**
  * Created by lenovo on 2016-5-18.
  */
-public class FlowHandler extends SysInfo {
-	private static FlowHandler ins;
+public class FlowUtil extends SysInfo {
+	private static FlowUtil ins;
 	private static int flowcount;
 
-	private FlowHandler() {
+	private FlowUtil() {
 		this.flowcount = 0;
 	}
 
-	public static synchronized FlowHandler getInstance() {
+	public static synchronized FlowUtil getInstance() {
 		if (ins == null)
-			ins = new FlowHandler();
+			ins = new FlowUtil();
 		return ins;
 	}
 

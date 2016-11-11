@@ -2,7 +2,7 @@ package edu.bupt.wangfu;
 
 import edu.bupt.wangfu.mgr.base.Config;
 import edu.bupt.wangfu.mgr.base.WsnMgr;
-import edu.bupt.wangfu.mgr.topology.GroupMgr;
+import edu.bupt.wangfu.mgr.topology.GroupUtil;
 
 /**
  * Created by LCW on 2016-6-19.
@@ -10,7 +10,7 @@ import edu.bupt.wangfu.mgr.topology.GroupMgr;
 public class Start {
 	public static void main(String[] args) {
 		Config.configure();//这里进行配置，配置文件的内容写到SysInfo里
-		GroupMgr.initGroup();//初始化本地关于集群的hostMap，switchMap还有outPorts
+		GroupUtil.initGroup();//初始化本地关于集群的hostMap，switchMap还有outPorts
 
 		new Thread(new mgrInstance()).start();
 	}

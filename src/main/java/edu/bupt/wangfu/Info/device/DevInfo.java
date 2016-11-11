@@ -1,7 +1,6 @@
 package edu.bupt.wangfu.info.device;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -11,8 +10,8 @@ public class DevInfo implements Serializable {
 
 	public String mac;
 	public Map<String, DevInfo> neighbors = new ConcurrentHashMap<>();//key是端口号，value是设备，不包括跨集群的邻居
-	public Set<String> subTopics = new HashSet<>();
-	public Set<String> pubTopics = new HashSet<>();
+	public Map<String, Set<String>> subMap = new ConcurrentHashMap<>();
+	public Map<String, Set<String>> pubMap = new ConcurrentHashMap<>();
 
 	public String getMac() {
 		return mac;

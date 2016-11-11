@@ -3,7 +3,7 @@ package edu.bupt.wangfu.mgr.base;
 import edu.bupt.wangfu.info.device.Controller;
 import edu.bupt.wangfu.info.device.Host;
 import edu.bupt.wangfu.info.msg.Route;
-import edu.bupt.wangfu.opendaylight.WsnGlobleUtil;
+import edu.bupt.wangfu.opendaylight.WsnUtil;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -23,11 +23,11 @@ public class Config extends SysInfo {
 
 		Host node = new Host(localAddr);
 		localMac = node.getMac();
-		localSwtId = WsnGlobleUtil.getLinkedSwtId(localMac);
+		localSwtId = WsnUtil.getLinkedSwtId(localMac);
 
 		//初始化topic和对应的编码
-		WsnGlobleUtil.initSysTopicMap();
-		WsnGlobleUtil.initNotifyTopicMap();//TODO 下流表，向管理员请求编码后的ldap
+		WsnUtil.initSysTopicMap();
+		WsnUtil.initNotifyTopicMap();
 	}
 
 	private static void setParams() {
@@ -57,7 +57,8 @@ public class Config extends SysInfo {
 		outSwitchs = new HashSet<>();
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
-		outerGroups = new HashSet<>();
+		neighborGroupLinks = new HashSet<>();
+		allGroups = new HashSet<>();
 
 		sysTopicAddrMap = new ConcurrentHashMap<>();
 		notifyTopicAddrMap = new ConcurrentHashMap<>();

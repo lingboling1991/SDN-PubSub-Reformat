@@ -1,6 +1,6 @@
 package edu.bupt.wangfu.mgr.topology.rcver;
 
-import edu.bupt.wangfu.info.device.OuterGroup;
+import edu.bupt.wangfu.info.device.GroupLink;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.Hello;
 import edu.bupt.wangfu.mgr.base.SysInfo;
@@ -62,6 +62,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 					if (!out.equals("LOCAL")) {
 						re_hello.endBorderSwtId = swt.id;
 						re_hello.endOutPort = out;
+						re_hello.allGroups = allGroups;
 
 						//依次发送re_hello到每一个outPort，中间的时延保证对面有足够的时间反应第一条收到的信息
 						MultiHandler handler = new MultiHandler(uPort, "re_hello", "sys");
@@ -88,13 +89,16 @@ public class HelloReceiver extends SysInfo implements Runnable {
 		@Override
 		public void run() {
 			//这里存的和最早发出hello信息的那边，顺序正好相反
-			OuterGroup g = new OuterGroup();
-			g.outerGroupName = finalHello.startGroup;
-			g.srcBorderSwtId = finalHello.endBorderSwtId;
-			g.srcOutPort = finalHello.endOutPort;
-			g.dstBorderSwtId = finalHello.startBorderSwtId;
-			g.dstOutPort = finalHello.startOutPort;
-			outerGroups.add(g);
+			GroupLink gl = new GroupLink();
+			gl.srcGroupName = finalHello.endGroup;
+			gl.dstGroupName = finalHello.startGroup;
+			gl.srcBorderSwtId = finalHello.endBorderSwtId;
+			gl.srcOutPort = finalHello.endOutPort;
+			gl.dstBorderSwtId = finalHello.startBorderSwtId;
+			gl.dstOutPort = finalHello.startOutPort;
+			neighborGroupLinks.add(gl);
+
+			//TODO 这里广播一条LSA，表示新增了一条集群间的连接
 		}
 	}
 }

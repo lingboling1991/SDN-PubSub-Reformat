@@ -17,12 +17,12 @@ import java.util.Properties;
 /**
  * Created by root on 15-10-6.
  */
-public class WsnGlobleUtil extends SysInfo {
+public class WsnUtil extends SysInfo {
 	public static void initNotifyTopicMap() {
-		Flow fromAdmin = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "admin", "sys", 1, 10);
-		FlowHandler.downFlow(groupCtl, fromAdmin, "add");
-		Flow toAdmin = FlowHandler.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "admin", "sys", 1, 10);
-		FlowHandler.downFlow(groupCtl, toAdmin, "add");
+		Flow fromAdmin = FlowUtil.getInstance().generateFlow(localSwtId, portWsn2Swt, "admin", "sys", 1, 10);
+		FlowUtil.downFlow(groupCtl, fromAdmin, "add");
+		Flow toAdmin = FlowUtil.getInstance().generateFlow(localSwtId, portWsn2Swt, "flood", "admin", "sys", 1, 10);
+		FlowUtil.downFlow(groupCtl, toAdmin, "add");
 
 		//TODO 这部分应该是管理员计算好了，到时直接取过来一个hashMap，韩波
 		new Thread(new AdminReceiver()).start();
