@@ -1,6 +1,7 @@
 package edu.bupt.wangfu.mgr.topology;
 
 import edu.bupt.wangfu.info.device.Flow;
+import edu.bupt.wangfu.info.device.Group;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.Hello;
 import edu.bupt.wangfu.mgr.base.SysInfo;
@@ -24,6 +25,8 @@ public class HeartMgr extends SysInfo {
 	private static Timer helloTimer = new Timer();
 
 	public HeartMgr() {
+		addSelf2Allgroups();
+
 		downRcvhelloRehelloFlow();
 
 		new Thread(new HelloReceiver()).start();
@@ -43,8 +46,16 @@ public class HeartMgr extends SysInfo {
 		helloTimer.schedule(new HelloTask(), 0, helloTaskPeriod);
 	}
 
+	private void addSelf2Allgroups() {
+		Group g = new Group(localGroupName);
+		g.updateTime = System.currentTimeMillis();
+		g.subMap = groupSubMap;
+		g.pubMap = groupPubMap;
+		allGroups.put(localGroupName, g);
+	}
+
 	private void downRcvhelloRehelloFlow() {
-		for (Switch swt : outSwitchs) {
+		for (Switch swt : outSwitchs.values()) {
 			for (String out : swt.portSet) {
 				if (!out.equals("LOCAL")) {
 					//这条路径保证outPort进来hello消息可以传回groupCtl
@@ -63,7 +74,7 @@ public class HeartMgr extends SysInfo {
 		Hello hello = new Hello();
 		MultiHandler handler = new MultiHandler(uPort, "hello", "sys");
 
-		hello.startGroup = groupName;
+		hello.startGroup = localGroupName;
 		hello.startOutPort = out;
 		hello.startBorderSwtId = swtId;
 		hello.reHelloPeriod = reHelloPeriod;
@@ -76,7 +87,7 @@ public class HeartMgr extends SysInfo {
 	private class HelloTask extends TimerTask {
 		@Override
 		public void run() {
-			for (Switch swt : outSwitchs) {
+			for (Switch swt : outSwitchs.values()) {
 				for (String out : swt.portSet) {
 					if (!out.equals("LOCAL")) {
 						List<String> ctl2out = RouteUtil.calRoute(localSwtId, swt.id);

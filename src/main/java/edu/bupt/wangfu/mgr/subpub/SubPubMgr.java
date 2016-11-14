@@ -1,11 +1,14 @@
 package edu.bupt.wangfu.mgr.subpub;
 
 import edu.bupt.wangfu.info.device.Flow;
+import edu.bupt.wangfu.info.device.Group;
 import edu.bupt.wangfu.info.device.Switch;
 import edu.bupt.wangfu.info.msg.SubPubInfo;
 import edu.bupt.wangfu.mgr.base.SysInfo;
+import edu.bupt.wangfu.mgr.route.RouteUtil;
 import edu.bupt.wangfu.mgr.subpub.rcver.PubReceiver;
 import edu.bupt.wangfu.mgr.subpub.rcver.SubReceiver;
+import edu.bupt.wangfu.mgr.topology.GroupUtil;
 import edu.bupt.wangfu.opendaylight.FlowUtil;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
@@ -29,7 +32,8 @@ public class SubPubMgr extends SysInfo {
 		splitTimer.schedule(splitTask, checkSplitPeriod, checkSplitPeriod);
 	}
 
-	public static boolean subscribe(String topic) {
+	//本地有新订阅
+	public static boolean localSubscribe(String topic) {
 		//查看是否已订阅该主题的父主题
 		String[] topicPath = topic.split(":");
 		String cur = topicPath[0];
@@ -43,7 +47,7 @@ public class SubPubMgr extends SysInfo {
 		if (needUnite(topic)) {
 			String father = getTopicFather(topic);
 			joinedSubTopics.add(father);
-			subscribe(father);
+			localSubscribe(father);
 			unsubscribeSons(father);
 			return true;
 		} else {
@@ -57,11 +61,20 @@ public class SubPubMgr extends SysInfo {
 			groupSubMap.put(topic, groupSub);
 			//全网广播
 			spreadSPInfo(cur, "sub", Action.SUB);
+			//更新全网所有集群信息
+			Group g = allGroups.get(localGroupName);
+			g.subMap = groupSubMap;
+			g.updateTime = System.currentTimeMillis();
+			allGroups.put(g.groupName, g);
+			GroupUtil.spreadLocalGrp(g);
+
+			RouteUtil.newSuber(localGroupName, localSwtId, portWsn2Swt, cur);
 			return true;
 		}
 	}
 
-	public static boolean unsubscribe(String topic) {
+	//本地有取消订阅
+	public static boolean localUnsubscribe(String topic) {
 		if (joinedSubTopics.contains(topic))//若这个订阅是聚合而成的，那么不能取消，因为并不是真实订阅
 			return false;
 		if (groupSubMap.get(topic) == null)
@@ -77,10 +90,17 @@ public class SubPubMgr extends SysInfo {
 
 		spreadSPInfo(topic, "sub", Action.UNSUB);
 
+		Group g = allGroups.get(localGroupName);
+		g.subMap = groupSubMap;
+		g.updateTime = System.currentTimeMillis();
+		allGroups.put(g.groupName, g);
+		GroupUtil.spreadLocalGrp(g);
+
 		return true;
 	}
 
-	public static boolean publish(String topic) {
+	//本地有新发布
+	public static boolean localPublish(String topic) {
 		//更新本集群发布
 		Set<String> groupPub = groupPubMap.get(topic) == null ? new HashSet<String>() : groupPubMap.get(topic);
 
@@ -89,12 +109,21 @@ public class SubPubMgr extends SysInfo {
 
 		groupPub.add(localSwtId + ":" + portWsn2Swt);
 		groupPubMap.put(topic, groupPub);
-		//全网广播
+
 		spreadSPInfo(topic, "pub", Action.PUB);
+
+		Group g = allGroups.get(localGroupName);
+		g.subMap = groupPubMap;
+		g.updateTime = System.currentTimeMillis();
+		allGroups.put(g.groupName, g);
+		GroupUtil.spreadLocalGrp(g);
+
+		RouteUtil.newPuber(localGroupName,localSwtId, portWsn2Swt, topic);
 		return true;
 	}
 
-	public static boolean unPublish(String topic) {
+	//本地有取消发布
+	public static boolean localUnpublish(String topic) {
 		if (groupPubMap.get(topic) == null)
 			return false;
 
@@ -106,13 +135,19 @@ public class SubPubMgr extends SysInfo {
 
 		spreadSPInfo(topic, "pub", Action.UNPUB);
 
+		Group g = allGroups.get(localGroupName);
+		g.subMap = groupPubMap;
+		g.updateTime = System.currentTimeMillis();
+		allGroups.put(g.groupName, g);
+		GroupUtil.spreadLocalGrp(g);
+
 		return true;
 	}
 
 	private static void unsubscribeSons(String father) {
 		for (String topic : localSubTopic) {
 			if (topic.contains(father) && topic.length() > father.length()) {
-				unsubscribe(topic);
+				localUnsubscribe(topic);
 				joinedUnsubTopics.add(topic);
 			}
 		}
@@ -138,7 +173,7 @@ public class SubPubMgr extends SysInfo {
 		MultiHandler handler = new MultiHandler(uPort, type, "sys");
 
 		nsp.action = action;
-		nsp.group = groupName;
+		nsp.group = localGroupName;
 		nsp.swtId = localSwtId;
 		nsp.hostMac = localMac;
 		nsp.hostIP = localAddr;
@@ -189,10 +224,10 @@ public class SubPubMgr extends SysInfo {
 		public void run() {
 			for (String father : joinedSubTopics) {
 				if (getCurFlowStatus(father) > splitThreshold) {
-					unsubscribe(father);
+					localUnsubscribe(father);
 					for (String son : joinedUnsubTopics) {
 						if (son.contains(father)) {
-							subscribe(son);
+							localSubscribe(son);
 						}
 					}
 				}

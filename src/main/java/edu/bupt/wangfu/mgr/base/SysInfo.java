@@ -14,7 +14,7 @@ import java.util.Set;
 public abstract class SysInfo {
 	//本地属性
 	public static String localMac;//本wsn节点所在计算机的mac地址
-	public static String groupName;//本集群的名字
+	public static String localGroupName;//本集群的名字
 	public static String localAddr;//本系统的地址
 	//	public static String multiAddr;//群内组播地址
 	public static int uPort;//UDP端口号，同时也是组播端口号
@@ -25,12 +25,12 @@ public abstract class SysInfo {
 	public static String localSwtId;//wsn连接的switch的id
 	public static String portWsn2Swt;//wsn连接switch，switch上的的端口
 	public static Set<Edge> groupEdges;//集群内所有swt连接的边的集合
-	public static Set<Switch> outSwitchs; //本集群所有拥有对外端口的swt的集合
+	public static Map<String,Switch> outSwitchs; //key是swtId，本集群所有拥有对外端口的swt的集合
 	public static Set<Route> groupRoutes;//集群内所有计算过的路径
 	public static Map<String, Host> hostMap;//当前集群所有host，key是mac
 	public static Map<String, Switch> switchMap;//当前集群所有switch，key是id
-	public static Set<GroupLink> neighborGroupLinks;//本集群与其邻居集群的连接情况
-	public static Map<String, Group> allGroups;//当前网络中所有集群的连接情况，key是groupName
+	public static Map<String, GroupLink> nbrGrpLinks;//key是对面group的groupName，本集群与其邻居集群的连接情况
+	public static Map<String, Group> allGroups;//key是groupName，当前网络中所有集群的连接情况
 	//订阅信息
 	public static Map<String, String> notifyTopicAddrMap;//主题树-->编码树，key是主题名，value是对应这个主题的v6地址
 	public static Map<String, String> sysTopicAddrMap;//系统消息对应的编码

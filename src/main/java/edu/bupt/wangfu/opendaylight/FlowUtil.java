@@ -148,6 +148,7 @@ public class FlowUtil extends SysInfo {
 	}
 
 	public Flow generateFlow(String swtId, String out, String topic, String topicType, int t_id, int pri) {
+		//TODO out有一种是flood-in-grp，就是选择这个swt中所有非outPort作为out
 		String v6Addr;
 		if (topicType.equals("sys")) {
 			v6Addr = sysTopicAddrMap.get(topic);

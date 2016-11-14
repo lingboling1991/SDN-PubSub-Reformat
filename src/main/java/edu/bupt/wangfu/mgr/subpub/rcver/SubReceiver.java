@@ -1,6 +1,6 @@
 package edu.bupt.wangfu.mgr.subpub.rcver;
 
-import edu.bupt.wangfu.info.device.GroupLink;
+import edu.bupt.wangfu.info.device.Group;
 import edu.bupt.wangfu.info.msg.SubPubInfo;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.route.RouteUtil;
@@ -38,13 +38,11 @@ public class SubReceiver extends SysInfo implements Runnable {
 
 		@Override
 		public void run() {
-			if (ns.group.equals(groupName)) {//本集群内节点产生的订阅
+			if (ns.group.equals(localGroupName)) {//本集群内节点产生的订阅
 				if (ns.action.equals(Action.SUB)) {
 					Set<String> groupSub = groupSubMap.get(ns.topic) == null ? new HashSet<String>() : groupSubMap.get(ns.topic);
 					groupSub.add(ns.swtId + ":" + ns.port);
 					groupSubMap.put(ns.topic, groupSub);
-
-					RouteUtil.newSuber(ns.swtId, ns.port, ns.topic);
 				} else if (ns.action.equals(Action.UNSUB)) {
 					Set<String> groupSub = groupSubMap.get(ns.topic);
 					groupSub.remove(ns.swtId + ":" + ns.port);
@@ -56,14 +54,14 @@ public class SubReceiver extends SysInfo implements Runnable {
 					outerSub.add(ns.group);
 					outerSubMap.put(ns.topic, outerSub);
 
-					GroupLink groupLink = null;
-					for (GroupLink ngl : neighborGroupLinks) {
-						if (ngl.dstGroupName.equals(ns.group)) {
-							groupLink = ngl;
-							break;
-						}
+					Group g = allGroups.get(ns.group);
+					g.subMap.get(ns.topic).add(ns.swtId + ":" + ns.port);
+					g.updateTime = System.currentTimeMillis();
+					allGroups.put(g.groupName, g);
+
+					if (localCtl.equals(groupCtl)) {//因为sub信息会全网广播，集群中只要有一个人计算本集群该做什么就可以了
+						RouteUtil.newSuber(ns.group, "", "", ns.topic);
 					}
-					RouteUtil.newSuber(groupLink.srcBorderSwtId, groupLink.srcOutPort, ns.topic);
 				} else if (ns.action.equals(Action.UNSUB)) {
 					Set<String> outerSub = outerSubMap.get(ns.topic);
 					outerSub.remove(ns.group);

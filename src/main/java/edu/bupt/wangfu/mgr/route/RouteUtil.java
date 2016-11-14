@@ -1,15 +1,15 @@
 package edu.bupt.wangfu.mgr.route;
 
-import edu.bupt.wangfu.info.device.Controller;
-import edu.bupt.wangfu.info.device.Flow;
-import edu.bupt.wangfu.info.device.Switch;
+import edu.bupt.wangfu.info.device.*;
 import edu.bupt.wangfu.info.msg.Route;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
+import edu.bupt.wangfu.mgr.subpub.Action;
 import edu.bupt.wangfu.opendaylight.FlowUtil;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +27,7 @@ public class RouteUtil extends SysInfo {
 		ArrayList<String> route = new ArrayList<>();
 
 		Route r = new Route();
-		r.group = groupName;
+		r.group = localGroupName;
 		r.startSwtId = startSwtId;
 		r.endSwtId = endSwtId;
 		r.route = route;
@@ -37,29 +37,118 @@ public class RouteUtil extends SysInfo {
 		return route;
 	}
 
-	public static void newSuber(String suberSwtId, String out, String topic) {
-		if (groupPubMap.get(topic) == null)
-			return;
-		Set<String> pubers = groupPubMap.get(topic);
-		for (String puber : pubers) {
-			String puberSwtId = puber.split(":")[0];
-			String puberPort = puber.split(":")[1];
+	public static void newSuber(String newSuberGrp, String suberSwtId, String out, String topic) {
+		if (newSuberGrp.equals(localGroupName)) {
+			//订阅者直接相连的swt
+			Flow inFlow = FlowUtil.getInstance().generateFlow(suberSwtId, out, topic, "notify", 1, 10);
+			FlowUtil.downFlow(groupCtl, inFlow, "update");
+			//群内非outSwt，匹配上topic，都flood；outSwt则是匹配上topic之后，向除outPort外的port转发
+			downGrpFlows(topic);
+		}
+		//outSwt，计算并下发属于自己集群的这段流表
+		calGraph(newSuberGrp, topic, Action.SUB);
+	}
 
-			List<String> r = calRoute(puberSwtId, suberSwtId);
-			downRouteFlows(r, puberPort, out, topic, "notify", groupCtl);
+
+	public static void newPuber(String newPuberGrp, String puberSwtId, String in, String topic) {
+		if (newPuberGrp.equals(localGroupName)) {
+			Flow floodFlow = FlowUtil.getInstance().generateFlow(puberSwtId, in, "flood", topic, "notify", 1, 10);
+			FlowUtil.downFlow(groupCtl, floodFlow, "update");
+			downGrpFlows(topic);
+		}
+		calGraph(newPuberGrp, topic, Action.PUB);
+	}
+
+	private static void downGrpFlows(String topic) {
+		for (String swtId : switchMap.keySet()) {
+			if (!outSwitchs.containsKey(swtId)) {
+				Flow floodFlow = FlowUtil.getInstance().generateFlow(swtId, "flood", topic, "notify", 1, 10);
+				FlowUtil.downFlow(groupCtl, floodFlow, "update");
+			} else {
+				Flow floodInFlow = FlowUtil.getInstance().generateFlow(swtId, "flood-in-grp", topic, "notify", 1, 10);
+				FlowUtil.downFlow(groupCtl, floodInFlow, "update");
+			}
 		}
 	}
 
-	public static void newPuber(String puberSwtId, String in, String topic) {
-		Set<String> subers = groupSubMap.get(topic);
-		for (String suber : subers) {
-			String suberSwtId = suber.split(":")[0];
-			String suberPort = suber.split(":")[1];
-
-			List<String> r = calRoute(puberSwtId, suberSwtId);
-			downRouteFlows(r, in, suberPort, topic, "notify", groupCtl);
+	//计算集群间的路由
+	private static void calGraph(String grpName, String topic, Action action) {
+		if (action.equals(Action.SUB)) {
+			Set<Group> puberGrps = new HashSet<>();
+			//找到所有发送这个主题以及它孩子主题的集群
+			for (Group grp : allGroups.values()) {
+				for (String grpPub : grp.pubMap.keySet()) {
+					if (grpPub.contains(topic)) {
+						puberGrps.add(grp);
+						break;
+					}
+				}
+			}
+			for (Group pg : puberGrps) {
+				List<String> route = calGraphRoute(pg.groupName, grpName);
+				buildBridges(route, topic);
+			}
+		} else if (action.equals(Action.PUB)) {
+			Set<Group> suberGrps = new HashSet<>();
+			for (Group grp : allGroups.values()) {
+				for (String grpSub : grp.subMap.keySet()) {
+					if (topic.contains(grpSub)) {
+						suberGrps.add(grp);
+						break;
+					}
+				}
+			}
+			for (Group sg : suberGrps) {
+				List<String> route = calGraphRoute(grpName, sg.groupName);
+				buildBridges(route, topic);
+			}
 		}
 	}
+
+	private static void buildBridges(List<String> route, String topic) {
+		for (int i = 0; i < route.size(); i++) {
+			//找到我们这个集群在整个通路中的位置
+			if (route.get(i).equals(localGroupName)) {
+				if (i == 0 && route.size() > 1) {
+					GroupLink groupLink = null;
+					for (GroupLink ngl : nbrGrpLinks.values()) {
+						if (ngl.dstGroupName.equals(route.get(i + 1))) {
+							groupLink = ngl;
+							break;
+						}
+					}
+					Flow outFlow = FlowUtil.getInstance().generateFlow(groupLink.srcBorderSwtId, groupLink.srcOutPort, topic, "notify", 1, 10);
+					FlowUtil.downFlow(groupCtl, outFlow, "update");
+				} else if (i >= 1 && i <= route.size() - 2) {//当前集群在这条路径的中间
+					String swt2PreGrp = nbrGrpLinks.get(route.get(i - 1)).srcBorderSwtId;
+					String port2PreGrp = nbrGrpLinks.get(route.get(i - 1)).srcOutPort;
+
+					String swt2NextGrp = nbrGrpLinks.get(route.get(i + 1)).srcBorderSwtId;
+					String port2NextGrp = nbrGrpLinks.get(route.get(i + 1)).srcOutPort;
+
+					List<String> r = RouteUtil.calRoute(swt2PreGrp, swt2NextGrp);
+					RouteUtil.downRouteFlows(r, port2PreGrp, port2NextGrp, topic, "notify", groupCtl);
+				} else if (route.size() > 1 && i == route.size() - 1) {//当前集群是路径中的最后一个
+					String swt2PreGrp = nbrGrpLinks.get(route.get(i - 1)).srcBorderSwtId;
+					String port2PreGrp = nbrGrpLinks.get(route.get(i - 1)).srcOutPort;
+
+					Flow inFloodFlow = FlowUtil.getInstance().generateFlow(swt2PreGrp, port2PreGrp, "flood", topic, "notify", 1, 10);
+					FlowUtil.downFlow(groupCtl, inFloodFlow, "update");
+				}
+			}
+		}
+	}
+
+	//下发集群间消息转发的流表
+	private static void downGraphFlows(Set<Flow> flows) {
+	}
+
+	//计算集群间的最短路径
+	private static List<String> calGraphRoute(String startGrpName, String endGrpName) {
+		//TODO 也是冠群，输入的是集群的名字，素材是allGroups
+		return new ArrayList<>();
+	}
+
 
 	private static void spreadRoute(Route r) {
 		MultiHandler handler = new MultiHandler(uPort, "route", "sys");

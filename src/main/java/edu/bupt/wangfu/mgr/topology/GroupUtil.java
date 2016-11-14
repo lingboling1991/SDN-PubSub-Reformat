@@ -1,6 +1,7 @@
 package edu.bupt.wangfu.mgr.topology;
 
 import edu.bupt.wangfu.info.device.*;
+import edu.bupt.wangfu.info.msg.AllGrps;
 import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.route.RouteUtil;
 import edu.bupt.wangfu.mgr.route.graph.Edge;
@@ -11,7 +12,6 @@ import edu.bupt.wangfu.opendaylight.RestProcess;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -36,10 +36,10 @@ public class GroupUtil extends SysInfo {
 		String url = controller.url + "/restconf/operational/network-topology:network-topology/";
 
 		//测试用
-		HashMap<String, Host> hostMap = new HashMap<>();
-		HashMap<String, Switch> switchMap = new HashMap<>();
-		HashSet<Edge> groupEdges = new HashSet<>();
-		HashSet<Switch> outSwitchs = new HashSet<>();
+//		HashMap<String, Host> hostMap = new HashMap<>();
+//		HashMap<String, Switch> switchMap = new HashMap<>();
+//		HashSet<Edge> groupEdges = new HashSet<>();
+//		HashSet<Switch> outSwitchs = new HashSet<>();
 		//结束
 
 		String body = RestProcess.doClientGet(url);
@@ -129,7 +129,7 @@ public class GroupUtil extends SysInfo {
 
 		for (Switch swt : switchMap.values()) {
 			if (swt.portSet.size() > 1) {
-				outSwitchs.add(swt);
+				outSwitchs.put(swt.id,swt);
 			}
 		}
 
@@ -159,9 +159,15 @@ public class GroupUtil extends SysInfo {
 		FlowUtil.downFlow(groupCtl, toGroupCtlFlow, "add");
 	}
 
-	public static void spreadNewLSA(Group g) {
+	public static void spreadLocalGrp(Group g) {
 		MultiHandler handler = new MultiHandler(uPort, "lsa", "sys");
 		handler.v6Send(g);
+	}
+
+	private static void spreadAllGrps() {
+		MultiHandler handler = new MultiHandler(uPort, "lsa", "sys");
+		AllGrps ags = new AllGrps(allGroups);
+		handler.v6Send(ags);
 	}
 
 	//更新group拓扑信息
@@ -176,7 +182,11 @@ public class GroupUtil extends SysInfo {
 					e.printStackTrace();
 				}
 			}
+
+			//定时广播自己集群的信息，确保每个新增加的节点都有最新的全网集群信息
 			downLSAFlow();
+			GroupUtil.spreadAllGrps();
+
 			SubPubMgr.downSubPubFlow();
 			//TODO 这里应该加上，如果有swt消失，那么这个swt上的所有pub和sub都作废
 			RouteUtil.downSyncGroupRouteFlow();

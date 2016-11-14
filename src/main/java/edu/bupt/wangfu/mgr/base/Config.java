@@ -43,7 +43,7 @@ public class Config extends SysInfo {
 
 		adminAddr = props.getProperty("adminAddress");
 		adminPort = Integer.valueOf(props.getProperty("adminPort"));
-		groupName = props.getProperty("localGroupName");
+		localGroupName = props.getProperty("localGroupName");
 		groupCtl = new Controller(props.getProperty("groupCtl"));
 		localAddr = props.getProperty("localAddress");
 		tPort = Integer.valueOf(props.getProperty("tPort"));
@@ -54,10 +54,10 @@ public class Config extends SysInfo {
 		splitThreshold = Integer.parseInt(props.getProperty("splitThreshold"));
 
 		groupEdges = new HashSet<>();
-		outSwitchs = new HashSet<>();
+		outSwitchs = new ConcurrentHashMap<>();
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
-		neighborGroupLinks = new HashSet<>();
+		nbrGrpLinks = new ConcurrentHashMap<>();
 		allGroups = new ConcurrentHashMap<>();
 
 		sysTopicAddrMap = new ConcurrentHashMap<>();

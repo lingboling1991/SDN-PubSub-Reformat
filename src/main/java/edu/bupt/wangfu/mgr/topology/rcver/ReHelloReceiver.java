@@ -7,6 +7,8 @@ import edu.bupt.wangfu.mgr.base.SysInfo;
 import edu.bupt.wangfu.mgr.topology.GroupUtil;
 import edu.bupt.wangfu.opendaylight.MultiHandler;
 
+import java.util.Map;
+
 /**
  * Created by lenovo on 2016-6-23.
  */
@@ -28,28 +30,32 @@ public class ReHelloReceiver extends SysInfo implements Runnable {
 
 	private void onReHello(Hello re_hello) {
 		GroupLink gl = new GroupLink();
-		gl.srcGroupName = re_hello.startGroup;
+		gl.srcGroupName = re_hello.startGroup;//自己集群的名字，因为这是对面收到hello消息后的回复
 		gl.dstGroupName = re_hello.endGroup;
 		gl.srcBorderSwtId = re_hello.startBorderSwtId;
 		gl.srcOutPort = re_hello.startOutPort;
 		gl.dstBorderSwtId = re_hello.endBorderSwtId;
 		gl.dstOutPort = re_hello.endOutPort;
-		neighborGroupLinks.add(gl);
+		nbrGrpLinks.put(gl.dstGroupName, gl);
 
-		//同步LSDB，其他集群的连接情况
-		//TODO 在最开始的时候，要把自己的group信息添加到allGroup里面
-		allGroups = re_hello.allGroups;
+		//同步LSDB，其他集群的连接情况；把对面已知的每个group的信息都替换为最新版本的
+		Map<String, Group> newAllGroup = re_hello.allGroups;
+		for (String grpName : newAllGroup.keySet()) {
+			if (allGroups.get(grpName) == null
+					|| allGroups.get(grpName).updateTime < newAllGroup.get(grpName).updateTime)
+				allGroups.put(grpName, newAllGroup.get(grpName));
+		}
 		//TODO 对面集群情况的更新（也就是新增了自己这个邻居），等他自己flood来告知
-		Group g = new Group(re_hello.endGroup);//自己这个集群
+		//再加上自己这个集群的信息
+		Group g = allGroups.get(localGroupName);
 		g.updateTime = System.currentTimeMillis();
-		g.subMap = groupSubMap;
-		g.pubMap = groupPubMap;
-		g.distances.put(re_hello.startGroup, 1);
-		allGroups.put(g.groupName, g);
+		g.dist2NbrGrps.put(re_hello.endGroup, 1);
+		allGroups.put(localGroupName, g);
+		//全网广播自己的集群信息
+		GroupUtil.spreadLocalGrp(g);
 
-		GroupUtil.spreadNewLSA(g);
-
+		re_hello.allGroups = allGroups;//之前发来的allGroups是对面集群的，现在给它回复过去，让它存我们这边的
 		handler = new MultiHandler(uPort, "hello", "sys");
-		handler.v6Send(re_hello);//因为现在还在HeartMgr.SendTask()的sleep()中，因此直接发送就可以
+		handler.v6Send(re_hello);//因为现在还在HeartMgr.HelloTask()的sleep()中，因此直接发送就可以
 	}
 }

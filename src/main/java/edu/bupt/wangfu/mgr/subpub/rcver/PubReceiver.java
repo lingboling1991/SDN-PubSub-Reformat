@@ -38,7 +38,7 @@ public class PubReceiver extends SysInfo implements Runnable {
 
 		@Override
 		public void run() {
-			if (np.group.equals(groupName)) {
+			if (np.group.equals(localGroupName)) {
 				if (np.action.equals(Action.PUB)) {
 					Set<String> groupPub = groupPubMap.get(np.topic) == null ? new HashSet<String>() : groupPubMap.get(np.topic);
 					groupPub.add(np.swtId + ":" + np.port);
@@ -57,7 +57,7 @@ public class PubReceiver extends SysInfo implements Runnable {
 					outerPubMap.put(np.topic, outerPub);
 
 					GroupLink groupLink = null;
-					for (GroupLink ngl : neighborGroupLinks) {
+					for (GroupLink ngl : nbrGrpLinks) {
 						if (ngl.dstGroupName.equals(np.group)) {
 							groupLink = ngl;
 							break;

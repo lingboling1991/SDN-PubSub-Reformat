@@ -58,22 +58,22 @@ public class SubPubRegister implements Runnable {
 					SPRegister spr = (SPRegister) obj;
 					switch (spr.type) {
 						case SUB:
-							SubPubMgr.subscribe(spr.topic);
+							SubPubMgr.localSubscribe(spr.topic);
 							spr.success = true;
 							oos.writeObject(spr);
 							break;
 						case PUB:
-							SubPubMgr.publish(spr.topic);
+							SubPubMgr.localPublish(spr.topic);
 							spr.success = true;
 							oos.writeObject(spr);
 							break;
 						case UNSUB:
-							SubPubMgr.unsubscribe(spr.topic);
+							SubPubMgr.localUnsubscribe(spr.topic);
 							spr.success = true;
 							oos.writeObject(spr);
 							break;
 						case UNPUB:
-							SubPubMgr.unPublish(spr.topic);
+							SubPubMgr.localUnpublish(spr.topic);
 							spr.success = true;
 							oos.writeObject(spr);
 							break;
