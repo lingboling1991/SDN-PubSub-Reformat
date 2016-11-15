@@ -64,6 +64,7 @@ public class Config extends SysInfo {
 		notifyTopicAddrMap = new ConcurrentHashMap<>();
 
 		localSubTopic = new HashSet<>();
+		localPubTopic = new HashSet<>();
 		groupSubMap = new ConcurrentHashMap<>();
 		outerSubMap = new ConcurrentHashMap<>();
 		groupPubMap = new ConcurrentHashMap<>();

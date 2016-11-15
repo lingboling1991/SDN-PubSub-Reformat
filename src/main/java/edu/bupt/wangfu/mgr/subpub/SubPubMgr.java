@@ -77,7 +77,7 @@ public class SubPubMgr extends SysInfo {
 	public static boolean localUnsubscribe(String topic) {
 		if (joinedSubTopics.contains(topic))//若这个订阅是聚合而成的，那么不能取消，因为并不是真实订阅
 			return false;
-		if (groupSubMap.get(topic) == null)
+		if (!localSubTopic.contains(topic))
 			return false;//本地没有这个订阅
 
 		localSubTopic.remove(topic);
@@ -85,8 +85,6 @@ public class SubPubMgr extends SysInfo {
 		Set<String> groupSub = groupSubMap.get(topic);
 		groupSub.remove(localSwtId + ":" + portWsn2Swt);
 		groupSubMap.put(topic, groupSub);
-
-		//TODO 删除本地交换机上的这条进流表,outport==portWsn2Swt,topic==topic
 
 		spreadSPInfo(topic, "sub", Action.UNSUB);
 
@@ -96,17 +94,27 @@ public class SubPubMgr extends SysInfo {
 		allGroups.put(g.groupName, g);
 		GroupUtil.spreadLocalGrp(g);
 
+		//删除集群内流表和过路流表，重新计算新的流表
+		if (groupSubMap.get(topic).size() == 0) {
+			Set<Flow> flows = notifyFlows.get(topic);
+			for (Flow f : flows) {
+				FlowUtil.deleteFlow(groupCtl, f);
+			}
+
+		}
+
 		return true;
 	}
 
 	//本地有新发布
 	public static boolean localPublish(String topic) {
-		//更新本集群发布
+		if (localPubTopic.contains(topic))
+			return false;//本地已有这个发布
+		localPubTopic.add(topic);
+
 		Set<String> groupPub = groupPubMap.get(topic) == null ? new HashSet<String>() : groupPubMap.get(topic);
-
-		if (groupPub.contains(localSwtId))
+		if (groupPub.contains(localSwtId + ":" + portWsn2Swt))
 			return false;
-
 		groupPub.add(localSwtId + ":" + portWsn2Swt);
 		groupPubMap.put(topic, groupPub);
 
@@ -118,14 +126,15 @@ public class SubPubMgr extends SysInfo {
 		allGroups.put(g.groupName, g);
 		GroupUtil.spreadLocalGrp(g);
 
-		RouteUtil.newPuber(localGroupName,localSwtId, portWsn2Swt, topic);
+		RouteUtil.newPuber(localGroupName, localSwtId, portWsn2Swt, topic);
 		return true;
 	}
 
 	//本地有取消发布
 	public static boolean localUnpublish(String topic) {
-		if (groupPubMap.get(topic) == null)
+		if (!localPubTopic.contains(topic))
 			return false;
+		localPubTopic.remove(topic);
 
 		Set<String> groupPub = groupPubMap.get(topic);
 		groupPub.remove(localSwtId + ":" + portWsn2Swt);

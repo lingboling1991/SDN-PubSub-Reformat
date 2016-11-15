@@ -36,6 +36,7 @@ public abstract class SysInfo {
 	public static Map<String, String> sysTopicAddrMap;//系统消息对应的编码
 	//订阅表
 	public static Set<String> localSubTopic;//本地订阅表，value是本地的订阅主题
+	public static Set<String> localPubTopic;//本地发布表，value是本地的发布主题
 	public static Map<String, Set<String>> groupSubMap;//本集群的订阅信息，key是topic，value是swtId:port的集合
 	public static Map<String, Set<String>> outerSubMap;//全网的订阅信息，key是topic，value是groupName的集合
 	public static Map<String, Set<String>> groupPubMap;//本集群的发布信息，key是topic，value是swtId:port的集合

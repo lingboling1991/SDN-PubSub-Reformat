@@ -39,7 +39,7 @@ public class RouteUtil extends SysInfo {
 
 	public static void newSuber(String newSuberGrp, String suberSwtId, String out, String topic) {
 		if (newSuberGrp.equals(localGroupName)) {
-			//订阅者直接相连的swt
+			//订阅者直接相连的swt，主要是为了预防订阅swt是一个边界swt
 			Flow inFlow = FlowUtil.getInstance().generateFlow(suberSwtId, out, topic, "notify", 1, 10);
 			FlowUtil.downFlow(groupCtl, inFlow, "update");
 			//群内非outSwt，匹配上topic，都flood；outSwt则是匹配上topic之后，向除outPort外的port转发
@@ -52,7 +52,7 @@ public class RouteUtil extends SysInfo {
 
 	public static void newPuber(String newPuberGrp, String puberSwtId, String in, String topic) {
 		if (newPuberGrp.equals(localGroupName)) {
-			Flow floodFlow = FlowUtil.getInstance().generateFlow(puberSwtId, in, "flood", topic, "notify", 1, 10);
+			Flow floodFlow = FlowUtil.getInstance().generateFlow(puberSwtId, in, "flood-in-grp", topic, "notify", 1, 10);
 			FlowUtil.downFlow(groupCtl, floodFlow, "update");
 			downGrpFlows(topic);
 		}
@@ -86,10 +86,11 @@ public class RouteUtil extends SysInfo {
 			}
 			for (Group pg : puberGrps) {
 				List<String> route = calGraphRoute(pg.groupName, grpName);
-				buildBridges(route, topic);
+				downBridgeFlow(route, topic);
 			}
 		} else if (action.equals(Action.PUB)) {
 			Set<Group> suberGrps = new HashSet<>();
+			//找到所有订阅这个主题以及它父亲主题的集群
 			for (Group grp : allGroups.values()) {
 				for (String grpSub : grp.subMap.keySet()) {
 					if (topic.contains(grpSub)) {
@@ -100,12 +101,40 @@ public class RouteUtil extends SysInfo {
 			}
 			for (Group sg : suberGrps) {
 				List<String> route = calGraphRoute(grpName, sg.groupName);
-				buildBridges(route, topic);
+				downBridgeFlow(route, topic);
 			}
+		} else if (action.equals(Action.UNSUB)) {
+			Set<Group> suberGrps = new HashSet<>();
+			for (Group grp : allGroups.values()) {
+				for (String grpSub : grp.subMap.keySet()) {
+					if (topic.contains(grpSub)) {
+						suberGrps.add(grp);
+						break;
+					}
+				}
+			}
+
+			Set<Group> puberGrps = new HashSet<>();
+			for (Group grp : allGroups.values()) {
+				for (String grpPub : grp.pubMap.keySet()) {
+					if (grpPub.contains(topic)) {
+						puberGrps.add(grp);
+						break;
+					}
+				}
+			}
+			for (Group pg : puberGrps) {
+				for (Group sg : suberGrps) {
+					List<String> route = calGraphRoute(pg.groupName, sg.groupName);
+					downBridgeFlow(route, topic);
+				}
+			}
+		} else if (action.equals(Action.UNPUB)) {
+
 		}
 	}
 
-	private static void buildBridges(List<String> route, String topic) {
+	private static void downBridgeFlow(List<String> route, String topic) {
 		for (int i = 0; i < route.size(); i++) {
 			//找到我们这个集群在整个通路中的位置
 			if (route.get(i).equals(localGroupName)) {
@@ -137,10 +166,6 @@ public class RouteUtil extends SysInfo {
 				}
 			}
 		}
-	}
-
-	//下发集群间消息转发的流表
-	private static void downGraphFlows(Set<Flow> flows) {
 	}
 
 	//计算集群间的最短路径
