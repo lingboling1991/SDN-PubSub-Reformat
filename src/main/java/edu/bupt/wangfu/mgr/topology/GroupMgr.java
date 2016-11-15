@@ -40,7 +40,7 @@ public class GroupMgr extends SysInfo {
 	}
 
 	//初始化hostMap，switchMap，outSwtMap
-	private static void setMaps(Controller controller) {
+	public static void setMaps(Controller controller) {
 		String url = controller.url + "/restconf/operational/network-topology:network-topology/";
 
 		//测试用

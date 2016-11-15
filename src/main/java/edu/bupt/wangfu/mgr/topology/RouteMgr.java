@@ -10,17 +10,21 @@ import edu.bupt.wangfu.opendaylight.FlowHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by LCW on 2016-7-16.
  */
 public class RouteMgr extends SysInfo {
+	public static void main(String[] args) {
+		Controller ctl = new Controller("10.108.165.188:8181");
+		GroupMgr.setMaps(ctl);
+		List<String> res = calRoute("123", "345");
+	}
+
 	public static List<String> calRoute(String startSwtId, String endSwtId) {
 		//TODO
-		ArrayList<String> route = new ArrayList<>();
-
-
-
+		List<String> route = Dijkstra.dijkstra(startSwtId, endSwtId, switchMap);
 
 		Route r = new Route();
 		r.startSwtId = startSwtId;
