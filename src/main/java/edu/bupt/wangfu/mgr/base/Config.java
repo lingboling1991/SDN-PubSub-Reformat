@@ -54,7 +54,7 @@ public class Config extends SysInfo {
 		splitThreshold = Integer.parseInt(props.getProperty("splitThreshold"));
 
 		groupEdges = new HashSet<>();
-		outSwitchs = new ConcurrentHashMap<>();
+		outSwitches = new ConcurrentHashMap<>();
 		hostMap = new ConcurrentHashMap<>();
 		switchMap = new ConcurrentHashMap<>();
 		nbrGrpLinks = new ConcurrentHashMap<>();

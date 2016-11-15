@@ -55,7 +55,7 @@ public class HeartMgr extends SysInfo {
 	}
 
 	private void downRcvhelloRehelloFlow() {
-		for (Switch swt : outSwitchs.values()) {
+		for (Switch swt : outSwitches.values()) {
 			for (String out : swt.portSet) {
 				if (!out.equals("LOCAL")) {
 					//这条路径保证outPort进来hello消息可以传回groupCtl
@@ -87,7 +87,7 @@ public class HeartMgr extends SysInfo {
 	private class HelloTask extends TimerTask {
 		@Override
 		public void run() {
-			for (Switch swt : outSwitchs.values()) {
+			for (Switch swt : outSwitches.values()) {
 				for (String out : swt.portSet) {
 					if (!out.equals("LOCAL")) {
 						List<String> ctl2out = RouteUtil.calRoute(localSwtId, swt.id);

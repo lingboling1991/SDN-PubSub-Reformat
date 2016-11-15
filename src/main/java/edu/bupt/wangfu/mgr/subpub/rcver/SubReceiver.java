@@ -30,42 +30,49 @@ public class SubReceiver extends SysInfo implements Runnable {
 	}
 
 	private class SubHandler implements Runnable {
-		private SubPubInfo ns;
+		private SubPubInfo sub;
 
-		SubHandler(SubPubInfo ns) {
-			this.ns = ns;
+		SubHandler(SubPubInfo sub) {
+			this.sub = sub;
 		}
 
 		@Override
 		public void run() {
-			if (ns.group.equals(localGroupName)) {//本集群内节点产生的订阅
-				if (ns.action.equals(Action.SUB)) {
-					Set<String> groupSub = groupSubMap.get(ns.topic) == null ? new HashSet<String>() : groupSubMap.get(ns.topic);
-					groupSub.add(ns.swtId + ":" + ns.port);
-					groupSubMap.put(ns.topic, groupSub);
-				} else if (ns.action.equals(Action.UNSUB)) {
-					Set<String> groupSub = groupSubMap.get(ns.topic);
-					groupSub.remove(ns.swtId + ":" + ns.port);
-					groupSubMap.put(ns.topic, groupSub);
+			if (sub.group.equals(localGroupName)) {//本集群内节点产生的订阅
+				if (sub.action.equals(Action.SUB)) {
+					Set<String> groupSub = groupSubMap.get(sub.topic) == null ? new HashSet<String>() : groupSubMap.get(sub.topic);
+					groupSub.add(sub.swtId + ":" + sub.port);
+					groupSubMap.put(sub.topic, groupSub);
+				} else if (sub.action.equals(Action.UNSUB)) {
+					Set<String> groupSub = groupSubMap.get(sub.topic);
+					groupSub.remove(sub.swtId + ":" + sub.port);
+					groupSubMap.put(sub.topic, groupSub);
 				}
 			} else {//邻居集群产生的订阅
-				if (ns.action.equals(Action.SUB)) {
-					Set<String> outerSub = outerSubMap.get(ns.topic) == null ? new HashSet<String>() : outerSubMap.get(ns.topic);
-					outerSub.add(ns.group);
-					outerSubMap.put(ns.topic, outerSub);
+				if (sub.action.equals(Action.SUB)) {
+					Set<String> outerSub = outerSubMap.get(sub.topic) == null ? new HashSet<String>() : outerSubMap.get(sub.topic);
+					outerSub.add(sub.group);
+					outerSubMap.put(sub.topic, outerSub);
 
-					Group g = allGroups.get(ns.group);
-					g.subMap.get(ns.topic).add(ns.swtId + ":" + ns.port);
+					Group g = allGroups.get(sub.group);
+					g.subMap.get(sub.topic).add(sub.swtId + ":" + sub.port);
 					g.updateTime = System.currentTimeMillis();
 					allGroups.put(g.groupName, g);
 
 					if (localCtl.equals(groupCtl)) {//因为sub信息会全网广播，集群中只要有一个人计算本集群该做什么就可以了
-						RouteUtil.newSuber(ns.group, "", "", ns.topic);
+						RouteUtil.newSuber(sub.group, "", "", sub.topic);
 					}
-				} else if (ns.action.equals(Action.UNSUB)) {
-					Set<String> outerSub = outerSubMap.get(ns.topic);
-					outerSub.remove(ns.group);
-					outerSubMap.put(ns.topic, outerSub);
+				} else if (sub.action.equals(Action.UNSUB)) {
+					if (allGroups.get(sub.group).subMap.get(sub.topic).size() == 1) {//如果发来取消订阅信息的集群内
+						// 部有不止一个订阅节点，那么就不需要修改outerSubMap
+						Set<String> outerSub = outerSubMap.get(sub.topic);
+						outerSub.remove(sub.group);
+						outerSubMap.put(sub.topic, outerSub);
+
+						if (localCtl.equals(groupCtl)) {//因为sub信息会全网广播，集群中只要有一个人计算本集群该做什么就可以了
+							RouteUtil.reCalGraph(sub.topic);
+						}
+					}
 				}
 			}
 

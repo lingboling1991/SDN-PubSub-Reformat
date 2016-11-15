@@ -45,7 +45,6 @@ public class ReHelloReceiver extends SysInfo implements Runnable {
 					|| allGroups.get(grpName).updateTime < newAllGroup.get(grpName).updateTime)
 				allGroups.put(grpName, newAllGroup.get(grpName));
 		}
-		//TODO 对面集群情况的更新（也就是新增了自己这个邻居），等他自己flood来告知
 		//再加上自己这个集群的信息
 		Group g = allGroups.get(localGroupName);
 		g.updateTime = System.currentTimeMillis();

@@ -30,42 +30,48 @@ public class PubReceiver extends SysInfo implements Runnable {
 	}
 
 	private class PubHandler implements Runnable {
-		private SubPubInfo np;
+		private SubPubInfo pub;
 
-		PubHandler(SubPubInfo np) {
-			this.np = np;
+		PubHandler(SubPubInfo pub) {
+			this.pub = pub;
 		}
 
 		@Override
 		public void run() {
-			if (np.group.equals(localGroupName)) {
-				if (np.action.equals(Action.PUB)) {
-					Set<String> groupPub = groupPubMap.get(np.topic) == null ? new HashSet<String>() : groupPubMap.get(np.topic);
-					groupPub.add(np.swtId + ":" + np.port);
-					groupPubMap.put(np.topic, groupPub);
-				} else if (np.action.equals(Action.UNPUB)) {
-					Set<String> groupPub = groupPubMap.get(np.topic);
-					groupPub.remove(np.swtId + ":" + np.port);
-					groupPubMap.put(np.topic, groupPub);
+			if (pub.group.equals(localGroupName)) {
+				if (pub.action.equals(Action.PUB)) {
+					Set<String> groupPub = groupPubMap.get(pub.topic) == null ? new HashSet<String>() : groupPubMap.get(pub.topic);
+					groupPub.add(pub.swtId + ":" + pub.port);
+					groupPubMap.put(pub.topic, groupPub);
+				} else if (pub.action.equals(Action.UNPUB)) {
+					Set<String> groupPub = groupPubMap.get(pub.topic);
+					groupPub.remove(pub.swtId + ":" + pub.port);
+					groupPubMap.put(pub.topic, groupPub);
 				}
 			} else {
-				if (np.action.equals(Action.PUB)) {
-					Set<String> outerPub = outerPubMap.get(np.topic) == null ? new HashSet<String>() : outerPubMap.get(np.topic);
-					outerPub.add(np.group);
-					outerPubMap.put(np.topic, outerPub);
+				if (pub.action.equals(Action.PUB)) {
+					Set<String> outerPub = outerPubMap.get(pub.topic) == null ? new HashSet<String>() : outerPubMap.get(pub.topic);
+					outerPub.add(pub.group);
+					outerPubMap.put(pub.topic, outerPub);
 
-					Group g = allGroups.get(np.group);
-					g.pubMap.get(np.topic).add(np.swtId + ":" + np.port);
+					Group g = allGroups.get(pub.group);
+					g.pubMap.get(pub.topic).add(pub.swtId + ":" + pub.port);
 					g.updateTime = System.currentTimeMillis();
 					allGroups.put(g.groupName, g);
 
 					if (localCtl.equals(groupCtl)) {
-						RouteUtil.newPuber(np.group, "", "", np.topic);
+						RouteUtil.newPuber(pub.group, "", "", pub.topic);
 					}
-				} else if (np.action.equals(Action.UNPUB)) {
-					Set<String> outerPub = outerPubMap.get(np.topic);
-					outerPub.remove(np.group);
-					outerPubMap.put(np.topic, outerPub);
+				} else if (pub.action.equals(Action.UNPUB)) {
+					if (allGroups.get(pub.group).pubMap.get(pub.topic).size() == 1) {
+						Set<String> outerPub = outerPubMap.get(pub.topic);
+						outerPub.remove(pub.group);
+						outerPubMap.put(pub.topic, outerPub);
+
+						if (localCtl.equals(groupCtl)) {
+							RouteUtil.reCalGraph(pub.topic);
+						}
+					}
 				}
 			}
 		}

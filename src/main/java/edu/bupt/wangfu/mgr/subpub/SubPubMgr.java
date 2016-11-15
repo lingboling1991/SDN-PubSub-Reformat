@@ -48,7 +48,7 @@ public class SubPubMgr extends SysInfo {
 			String father = getTopicFather(topic);
 			joinedSubTopics.add(father);
 			localSubscribe(father);
-			unsubscribeSons(father);
+			unsubAllSons(father);
 			return true;
 		} else {
 			//更新wsn节点上的订阅信息
@@ -94,14 +94,13 @@ public class SubPubMgr extends SysInfo {
 		allGroups.put(g.groupName, g);
 		GroupUtil.spreadLocalGrp(g);
 
-		//删除集群内流表和过路流表，重新计算新的流表
-		if (groupSubMap.get(topic).size() == 0) {
+		//TODO 应该删除集群内流表和过路流表，重新计算新的流表；但是太复杂了，需要再讨论
+		/*if (groupSubMap.get(topic).size() == 0) {
 			Set<Flow> flows = notifyFlows.get(topic);
 			for (Flow f : flows) {
 				FlowUtil.deleteFlow(groupCtl, f);
 			}
-
-		}
+		}*/
 
 		return true;
 	}
@@ -140,8 +139,6 @@ public class SubPubMgr extends SysInfo {
 		groupPub.remove(localSwtId + ":" + portWsn2Swt);
 		groupPubMap.put(topic, groupPub);
 
-		//TODO 删除本地的这条发出流表,inport==portWsn2Swt,topic==topic
-
 		spreadSPInfo(topic, "pub", Action.UNPUB);
 
 		Group g = allGroups.get(localGroupName);
@@ -150,10 +147,12 @@ public class SubPubMgr extends SysInfo {
 		allGroups.put(g.groupName, g);
 		GroupUtil.spreadLocalGrp(g);
 
+		//TODO 应该删除集群内流表和过路流表，重新计算新的流表；但是太复杂了，需要再讨论
+
 		return true;
 	}
 
-	private static void unsubscribeSons(String father) {
+	private static void unsubAllSons(String father) {
 		for (String topic : localSubTopic) {
 			if (topic.contains(father) && topic.length() > father.length()) {
 				localUnsubscribe(topic);
@@ -173,8 +172,28 @@ public class SubPubMgr extends SysInfo {
 	}
 
 	private static boolean needUnite(String topic) {
-		//TODO 先确定主题是如何存储的，再完成这块
-		return true;
+		int subBros = 0;
+		int level = topic.split(":").length;
+		String father = getTopicFather(topic);
+		int totalDirectSons = totalDirectSons(father);
+		for (String lst : localSubTopic) {
+			if (lst.contains(father) && lst.split(":").length == level) {//lst是topic的兄弟主题
+				subBros++;
+			}
+		}
+		return subBros > totalDirectSons / 2;
+	}
+
+	private static int totalDirectSons(String father) {
+		int res = 0;
+		int fatherLevel = father.split(":").length;
+		for (String topic : notifyTopicAddrMap.keySet()) {
+			int topicLevel = topic.split(":").length;
+			if (topic.contains(father) && topicLevel == fatherLevel + 1) {
+				res++;
+			}
+		}
+		return res;
 	}
 
 	private static void spreadSPInfo(String topic, String type, Action action) {

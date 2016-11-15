@@ -27,7 +27,14 @@ public class LSAReceiver extends SysInfo implements Runnable {
 				}
 			} else if (msg instanceof AllGrps) {
 				AllGrps ags = (AllGrps) msg;
-				allGroups = ags.allGrps;
+				for (Group group : ags.allGrps.values()) {
+					if (allGroups.containsKey(group.groupName)
+							&& allGroups.get(group.groupName).updateTime < group.updateTime) {
+						allGroups.put(group.groupName, group);
+					} else if (!allGroups.containsKey(group.groupName)) {
+						allGroups.put(group.groupName, group);
+					}
+				}
 			}
 		}
 	}

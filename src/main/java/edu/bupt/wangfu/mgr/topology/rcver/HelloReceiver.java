@@ -54,7 +54,7 @@ public class HelloReceiver extends SysInfo implements Runnable {
 
 		@Override
 		public void run() {
-			for (Switch swt : outSwitchs.values()) {
+			for (Switch swt : outSwitches.values()) {
 				for (String out : swt.portSet) {
 					if (!out.equals("LOCAL")) {
 						re_hello.endBorderSwtId = swt.id;

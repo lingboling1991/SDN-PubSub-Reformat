@@ -61,7 +61,7 @@ public class RouteUtil extends SysInfo {
 
 	private static void downGrpFlows(String topic) {
 		for (String swtId : switchMap.keySet()) {
-			if (!outSwitchs.containsKey(swtId)) {
+			if (!outSwitches.containsKey(swtId)) {
 				Flow floodFlow = FlowUtil.getInstance().generateFlow(swtId, "flood", topic, "notify", 1, 10);
 				FlowUtil.downFlow(groupCtl, floodFlow, "update");
 			} else {
@@ -103,34 +103,34 @@ public class RouteUtil extends SysInfo {
 				List<String> route = calGraphRoute(grpName, sg.groupName);
 				downBridgeFlow(route, topic);
 			}
-		} else if (action.equals(Action.UNSUB)) {
-			Set<Group> suberGrps = new HashSet<>();
-			for (Group grp : allGroups.values()) {
-				for (String grpSub : grp.subMap.keySet()) {
-					if (topic.contains(grpSub)) {
-						suberGrps.add(grp);
-						break;
-					}
-				}
-			}
+		}
+	}
 
-			Set<Group> puberGrps = new HashSet<>();
-			for (Group grp : allGroups.values()) {
-				for (String grpPub : grp.pubMap.keySet()) {
-					if (grpPub.contains(topic)) {
-						puberGrps.add(grp);
-						break;
-					}
+	public static void reCalGraph(String topic) {
+		Set<Group> suberGrps = new HashSet<>();
+		for (Group grp : allGroups.values()) {
+			for (String grpSub : grp.subMap.keySet()) {
+				if (topic.contains(grpSub)) {
+					suberGrps.add(grp);
+					break;
 				}
 			}
-			for (Group pg : puberGrps) {
-				for (Group sg : suberGrps) {
-					List<String> route = calGraphRoute(pg.groupName, sg.groupName);
-					downBridgeFlow(route, topic);
-				}
-			}
-		} else if (action.equals(Action.UNPUB)) {
+		}
 
+		Set<Group> puberGrps = new HashSet<>();
+		for (Group grp : allGroups.values()) {
+			for (String grpPub : grp.pubMap.keySet()) {
+				if (grpPub.contains(topic)) {
+					puberGrps.add(grp);
+					break;
+				}
+			}
+		}
+		for (Group pg : puberGrps) {
+			for (Group sg : suberGrps) {
+				List<String> route = calGraphRoute(pg.groupName, sg.groupName);
+				downBridgeFlow(route, topic);
+			}
 		}
 	}
 
@@ -206,7 +206,7 @@ public class RouteUtil extends SysInfo {
 			}
 			Flow flow = FlowUtil.getInstance().generateFlow(route.get(i), inPort, outPort, topic, topicType, 1, 10);
 			routeFlows.add(flow);
-			FlowUtil.downFlow(ctl, flow, "add");
+			FlowUtil.downFlow(ctl, flow, "update");
 		}
 		return routeFlows;
 	}

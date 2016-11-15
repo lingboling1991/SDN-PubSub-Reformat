@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashSet;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -39,8 +40,12 @@ public class GroupUtil extends SysInfo {
 //		HashMap<String, Host> hostMap = new HashMap<>();
 //		HashMap<String, Switch> switchMap = new HashMap<>();
 //		HashSet<Edge> groupEdges = new HashSet<>();
-//		HashSet<Switch> outSwitchs = new HashSet<>();
+//		HashSet<Switch> outSwitches = new HashSet<>();
 		//结束
+		hostMap.clear();
+		switchMap.clear();
+		groupEdges.clear();
+		outSwitches.clear();
 
 		String body = RestProcess.doClientGet(url);
 		JSONObject json = new JSONObject(body);
@@ -73,6 +78,27 @@ public class GroupUtil extends SysInfo {
 				switchMap.put(swtId, swt);
 			}
 		}
+
+		//清理本集群内失效的swt
+		for (Set<String> subSwts : groupSubMap.values()) {
+			for (String swt_Port : subSwts) {
+				if (!switchMap.keySet().contains(swt_Port.split(":")[0])) {//说明原本有订阅的这个swt丢失了，那么就要在subMap里面把它清除
+					subSwts.remove(swt_Port);
+				}
+			}
+		}
+		for (Set<String> pubSwts : groupPubMap.values()) {
+			for (String swt_Port : pubSwts) {
+				if (!switchMap.keySet().contains(swt_Port.split(":")[0])) {
+					pubSwts.remove(swt_Port);
+				}
+			}
+		}
+		Group localGrp = allGroups.get(localGroupName);
+		localGrp.subMap = groupSubMap;
+		localGrp.pubMap = groupPubMap;
+		localGrp.updateTime = System.currentTimeMillis();
+		spreadLocalGrp(localGrp);
 
 		for (int i = 0; i < topology.length(); i++) {
 			JSONArray links = topology.getJSONObject(i).getJSONArray("link");
@@ -129,12 +155,32 @@ public class GroupUtil extends SysInfo {
 
 		for (Switch swt : switchMap.values()) {
 			if (swt.portSet.size() > 1) {
-				outSwitchs.put(swt.id,swt);
+				outSwitches.put(swt.id, swt);
+			}
+		}
+		for (GroupLink gl : nbrGrpLinks.values()) {
+			if (!isGrpLinked(gl)) {//两集群不相连，则删掉二者之间的邻居关系
+				nbrGrpLinks.remove(gl.dstGroupName);
+
+				Group g = allGroups.get(gl.srcGroupName);
+				g.dist2NbrGrps.remove(gl.dstGroupName);
+				g.updateTime = System.currentTimeMillis();
+
+				Group g2 = allGroups.get(gl.dstGroupName);
+				g2.dist2NbrGrps.remove(gl.srcGroupName);
+				g2.updateTime = System.currentTimeMillis();
+				//后面在定时任务里已经有spreadAllGrps()了
 			}
 		}
 
 		System.out.println("test to see hostMap and switchMap");
 
+	}
+
+	private static boolean isGrpLinked(GroupLink gl) {
+		//之前连接着对面group的swt还在，暴露的outPort还是一样，就认为对面连接的还是同一个集群
+		return outSwitches.containsKey(gl.srcBorderSwtId)
+				&& outSwitches.get(gl.srcBorderSwtId).portSet.contains(gl.srcOutPort);
 	}
 
 	//groupCtl下发全集群各swt上flood流表
@@ -164,14 +210,15 @@ public class GroupUtil extends SysInfo {
 		handler.v6Send(g);
 	}
 
-	private static void spreadAllGrps() {
-		MultiHandler handler = new MultiHandler(uPort, "lsa", "sys");
-		AllGrps ags = new AllGrps(allGroups);
-		handler.v6Send(ags);
-	}
 
 	//更新group拓扑信息
 	private static class RefreshGroup extends TimerTask {
+		private static void spreadAllGrps() {
+			MultiHandler handler = new MultiHandler(uPort, "lsa", "sys");
+			AllGrps ags = new AllGrps(allGroups);
+			handler.v6Send(ags);
+		}
+
 		@Override
 		public void run() {
 			setMaps(groupCtl);
@@ -182,10 +229,9 @@ public class GroupUtil extends SysInfo {
 					e.printStackTrace();
 				}
 			}
-
 			//定时广播自己集群的信息，确保每个新增加的节点都有最新的全网集群信息
 			downLSAFlow();
-			GroupUtil.spreadAllGrps();
+			spreadAllGrps();
 
 			SubPubMgr.downSubPubFlow();
 			//TODO 这里应该加上，如果有swt消失，那么这个swt上的所有pub和sub都作废
